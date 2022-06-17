@@ -5,28 +5,20 @@ import mapper.image as im
 
 
 def show_images():
-    bgr = im.read_image_bgr('c:/Users/patri/bilder/left.JPG')
-
-    print(f'bgr shape={bgr.shape}')
-    print(f'bgr size={im.image_size(bgr)}')
+    bgr = im.read_image_bgr('c:/Users/patri/bilder/IMG_0142.jpeg')
 
     gray = im.gray_convert(bgr)
-    gray2 = im.gray_convert(gray)
+    viz = im.visualization_image(gray)
+
+    features = im.generate_features(gray)
+    im.draw_features(viz, features)
 
     cv.namedWindow('show', cv.WINDOW_NORMAL +
                    cv.WINDOW_KEEPRATIO + cv.WINDOW_GUI_EXPANDED)
 
-    cv.setWindowTitle('show', 'Original BGR')
-    cv.imshow('show', bgr)
+    cv.setWindowTitle('show', 'Features')
+    cv.imshow('show', viz)
     key = cv.waitKey(0)
-
-    cv.setWindowTitle('show', 'Gray from BGR')
-    cv.imshow('show', gray)
-    cv.waitKey(0)
-
-    cv.setWindowTitle('show', 'Gray from gray')
-    cv.imshow('show', gray2)
-    cv.waitKey(0)
 
     cv.destroyWindow('show')
 
