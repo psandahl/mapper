@@ -5,7 +5,7 @@ import mapper.image as im
 
 
 def show_images():
-    bgr = im.read_image_bgr('/mnt/c/Users/patri/bilder/left.JPG')
+    bgr = im.read_image_bgr('c:/Users/patri/bilder/left.JPG')
     gray = im.gray_convert(bgr)
     gray2 = im.gray_convert(gray)
 
@@ -16,15 +16,13 @@ def show_images():
     cv.imshow('show', bgr)
     key = cv.waitKey(0)
 
-    print(f'Pressed={key}')
+    cv.setWindowTitle('show', 'Gray from BGR')
+    cv.imshow('show', gray)
+    cv.waitKey(0)
 
-    # cv.setWindowTitle('show', 'Gray from BGR')
-    # cv.imshow('show', gray)
-    # cv.waitKey(0)
-
-    # cv.setWindowTitle('show', 'Gray from gray')
-    # cv.imshow('show', gray2)
-    # cv.waitKey(0)
+    cv.setWindowTitle('show', 'Gray from gray')
+    cv.imshow('show', gray2)
+    cv.waitKey(0)
 
     cv.destroyWindow('show')
 
