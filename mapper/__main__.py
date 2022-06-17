@@ -6,6 +6,10 @@ import mapper.image as im
 
 def show_images():
     bgr = im.read_image_bgr('c:/Users/patri/bilder/left.JPG')
+
+    print(f'bgr shape={bgr.shape}')
+    print(f'bgr size={im.image_size(bgr)}')
+
     gray = im.gray_convert(bgr)
     gray2 = im.gray_convert(gray)
 
