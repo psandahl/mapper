@@ -41,6 +41,13 @@ class ImageTestCase(unittest.TestCase):
         self.assertAlmostEqual(0.9 * 1.0, im.interpolate_pixel(img, 0.9, 0.0))
         self.assertAlmostEqual(0.9 * 2.0, im.interpolate_pixel(img, 0.0, 0.9))
 
+    def test_to_cv_point(self):
+        x, y = im.to_cv_point(np.array([1.1, 1.9]))
+        self.assertEqual(x, 1)
+        self.assertEqual(y, 2)
+        self.assertIsInstance(x, int)
+        self.assertIsInstance(y, int)
+
 
 def run_tests():
     unittest.main()
