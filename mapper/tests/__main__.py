@@ -29,6 +29,18 @@ class ImageTestCase(unittest.TestCase):
         single_channel = np.array([1, 2, 3, 4, 5, 6]).reshape(3, 2)
         self.assertTupleEqual((2, 3), im.image_size(single_channel))
 
+    def test_interpolate_pixel(self):
+        img = np.array([0.0, 1.0, 2.0, 3.0]).reshape(2, 2)
+
+        self.assertAlmostEqual(0.0 * 0.0, im.interpolate_pixel(img, 0.0, 0.0))
+        self.assertAlmostEqual(0.5 * 1.0, im.interpolate_pixel(img, 0.5, 0.0))
+        self.assertAlmostEqual(0.5 * 2.0, im.interpolate_pixel(img, 0.0, 0.5))
+        self.assertAlmostEqual(0.25 * 0.0 + 0.25 * 1.0 + 0.25 *
+                               2.0 + 0.25 * 3.0, im.interpolate_pixel(img, 0.5, 0.5))
+
+        self.assertAlmostEqual(0.9 * 1.0, im.interpolate_pixel(img, 0.9, 0.0))
+        self.assertAlmostEqual(0.9 * 2.0, im.interpolate_pixel(img, 0.0, 0.9))
+
 
 def run_tests():
     unittest.main()

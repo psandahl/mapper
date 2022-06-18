@@ -205,3 +205,45 @@ def gray_flow_visualization_image(flow: cv.Mat) -> cv.Mat:
         viz[row, col] = np.linalg.norm(flow[row, col])
 
     return cv.normalize(viz, viz, 1.0, 0.0, cv.NORM_MINMAX)
+
+
+def interpolate_pixel(image: cv.Mat, x: float, y: float) -> any:
+    """
+    Interpolate an image from floating point pixel coordinates.
+
+    Parameters:
+        image: The image to be read.
+        x: x image coordinate.
+        y: y image coordinate.
+
+    Returns:
+        The weighted image value.  
+    """
+    assert is_image(image), 'Argument is assumed to be an image'
+
+    # Integer part.
+    i_x = math.floor(x)
+    i_y = math.floor(y)
+
+    w, h = image_size(image)
+    if i_x < w - 1 and i_y < h - 1:
+        # Fractional part.
+        f_x = x - i_x
+        f_y = y - i_y
+
+        w00 = (1.0 - f_x) * (1.0 - f_y)
+        w10 = f_x * (1.0 - f_y)
+        w01 = (1.0 - f_x) * f_y
+        w11 = f_x * f_y
+
+        px00 = image[i_y, i_x]
+        px10 = image[i_y, i_x + 1]
+        px01 = image[i_y + 1, i_x]
+        px11 = image[i_y + 1, i_x + 1]
+
+        return w00 * px00 + w10 * px10 + w01 * px01 + w11 * px11
+    elif i_x < w and i_y < h:
+        # No interpolation at the border.
+        return image[i_y, i_x]
+    else:
+        return None
