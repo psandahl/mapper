@@ -128,12 +128,13 @@ def generate_features(image: cv.Mat) -> np.ndarray:
     # Max corners and image size determines the min distance between features.
     min_distance = min(w, h) / math.sqrt(max_corners)
 
-    features = cv.goodFeaturesToTrack(
-        image, max_corners, quality_level, min_distance)
-    criteria = (cv.TERM_CRITERIA_MAX_ITER + cv.TERM_CRITERIA_EPS, 20, 0.05)
-
+    features = flatten_feature_array(
+        cv.goodFeaturesToTrack(image, max_corners,
+                               quality_level, min_distance))
     print(
         f'generate_features() response/request ratio={len(features) / max_corners:.2f}%')
+
+    criteria = (cv.TERM_CRITERIA_MAX_ITER + cv.TERM_CRITERIA_EPS, 20, 0.05)
 
     return cv.cornerSubPix(image, features, (3, 3), (-1, -1), criteria)
 
@@ -151,10 +152,19 @@ def draw_features(image: cv.Mat, features: np.ndarray, color: tuple = (0, 255, 0
     assert num_channels(image) == 3, 'Image is supposed to have three channels'
 
     for feature in features:
-        flat_feature = feature.flatten()
-        center = (int(round(flat_feature[0])), int(round(flat_feature[1])))
+        center = (int(round(feature[0])), int(round(feature[1])))
 
         cv.circle(image, center, 3, color)
+
+
+def flatten_feature_array(xs: np.ndarray) -> np.ndarray:
+    """Helper function to flatten an array of image points"""
+    assert isinstance(xs, np.ndarray), 'Argument is supposed to be an array'
+
+    if len(xs) > 0 and isinstance(xs[0][0], np.ndarray):
+        return np.array([x.flatten() for x in xs])
+    else:
+        return xs
 
 
 def dense_optical_flow(image0: cv.Mat, image1: cv.Mat) -> cv.Mat:
