@@ -138,7 +138,7 @@ def generate_features(image: cv.Mat) -> np.ndarray:
     return cv.cornerSubPix(image, features, (3, 3), (-1, -1), criteria)
 
 
-def draw_features(image: cv.Mat, features: np.ndarray, color: tuple = (0, 255, 0)) -> any:
+def draw_features(image: cv.Mat, features: np.ndarray, color: tuple = (0, 255, 0)) -> None:
     """
     Show features as circles in the given image.
 
@@ -155,3 +155,53 @@ def draw_features(image: cv.Mat, features: np.ndarray, color: tuple = (0, 255, 0
         center = (int(round(flat_feature[0])), int(round(flat_feature[1])))
 
         cv.circle(image, center, 3, color)
+
+
+def dense_optical_flow(image0: cv.Mat, image1: cv.Mat) -> cv.Mat:
+    """
+    Calculate the dense optical flow between two equal sized, one channel, images.
+
+    Parameters:
+        image0: First image to optical flow.
+        image1: Second image to optical flow.
+
+    Returns:
+        A two channel floating point image with flow from image0 to image1.
+    """
+    assert is_image(image0), 'Image0 is assumed to be an image'
+    assert num_channels(image0) == 1, 'Image0 is supposed to have one channel'
+    assert is_image(image1), 'Image1 is assumed to be an image'
+    assert num_channels(image1) == 1, 'Image1 is supposed to have one channel'
+    assert image_size(image0) == image_size(
+        image1), 'Images are supposed to have same size'
+
+    rows, cols = image0.shape
+    flow = np.zeros(shape=(rows, cols, 2), dtype=np.float32)
+
+    # MEDIUM, FAST, ULTRA_FAST are the creation options.
+    dis = cv.DISOpticalFlow_create(cv.DISOPTICAL_FLOW_PRESET_FAST)
+    return dis.calc(image0, image1, flow)
+
+
+def gray_flow_visualization_image(flow: cv.Mat) -> cv.Mat:
+    """
+    Create a gray scale vizualization image showing the magnitude of flow.
+
+    Parameters:
+        flow: A flow image.
+
+    Returns:
+        A normalized floating point image with magnitudes.
+    """
+    assert is_image(flow), 'Argument is assumed to be an image'
+    assert num_channels(flow) == 2, 'Argument is supposed to have two channels'
+
+    rows, cols, channels = flow.shape
+    viz = np.zeros(shape=(rows, cols), dtype=np.float32)
+
+    itr = np.nditer(viz, flags=['multi_index'])
+    for px in itr:
+        row, col = itr.multi_index
+        viz[row, col] = np.linalg.norm(flow[row, col])
+
+    return cv.normalize(viz, viz, 1.0, 0.0, cv.NORM_MINMAX)
