@@ -5,7 +5,7 @@ import mapper.image as im
 
 
 def show_images():
-    bgr = im.read_image_bgr('c:/Users/patri/bilder/IMG_0142.jpeg')
+    bgr = im.read_image_bgr('c:/Users/patri/bilder/IMG_0111.jpeg')
 
     gray = im.gray_convert(bgr)
     viz = im.visualization_image(gray)
@@ -24,7 +24,7 @@ def show_images():
 
 
 def main():
-    print('hello')
+    show_images()
 
 
 if __name__ == '__main__':

@@ -133,7 +133,7 @@ def generate_features(image: cv.Mat) -> np.ndarray:
     criteria = (cv.TERM_CRITERIA_MAX_ITER + cv.TERM_CRITERIA_EPS, 20, 0.05)
 
     print(
-        f'generate_features() request/response ratio={len(features) / max_corners:.2f}%')
+        f'generate_features() response/request ratio={len(features) / max_corners:.2f}%')
 
     return cv.cornerSubPix(image, features, (3, 3), (-1, -1), criteria)
 
