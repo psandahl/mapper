@@ -4,6 +4,7 @@ import cv2 as cv
 import numpy as np
 
 import math
+import random
 
 
 def is_image(value: any) -> Boolean:
@@ -152,9 +153,64 @@ def draw_features(image: cv.Mat, features: np.ndarray, color: tuple = (0, 255, 0
     assert num_channels(image) == 3, 'Image is supposed to have three channels'
 
     for feature in features:
-        center = (int(round(feature[0])), int(round(feature[1])))
+        cv.circle(image, to_cv_point(feature), 3, color)
 
-        cv.circle(image, center, 3, color)
+
+def draw_matching_features(image0: cv.Mat, features0: np.ndarray,
+                           image1: cv.Mat, features1: np.ndarray,
+                           step: int = 1) -> cv.Mat:
+    """
+    Draw matching features between two images.
+
+    Parameters:
+        image0: Image 0.
+        features0: Features for image 0.
+        image1: Image 1.
+        features0: Features for image 1.
+        step: Granularity for feature iteration.
+
+    Returns:
+        The image with matching features.
+    """
+    assert is_image(image0), 'Image0 is supposed to be an image'
+    assert num_channels(
+        image0) == 3, 'Image0 is supposed to have three channels'
+    assert is_image(image1), 'Image1 is supposed to be an image'
+    assert num_channels(
+        image1) == 3, 'Image1 is supposed to have three channels'
+    assert isinstance(
+        features0, np.ndarray), 'Features0 is supposed to be an array'
+    assert isinstance(
+        features1, np.ndarray), 'Features1 is supposed to be an array'
+    assert len(features0) == len(
+        features1), 'Feature arrays must be of same length'
+
+    w, h = image_size(image0)
+    offset = np.array([w, 0.0])
+
+    match = np.hstack([image0, image1])
+
+    for index in range(0, len(features0), step):
+        color = (random.randint(0, 255),
+                 random.randint(0, 255),
+                 random.randint(0, 255))
+        px0 = to_cv_point(features0[index])
+        px1 = to_cv_point(features1[index] + offset)
+
+        cv.circle(match, px0, 3, color)
+        cv.circle(match, px1, 3, color)
+        cv.line(match, px0, px1, color)
+
+    return match
+
+
+def to_cv_point(point: np.ndarray) -> tuple:
+    """Helper function to convert a numpy point to a cv point"""
+    assert isinstance(point, np.ndarray), 'Point is supposed to be an array'
+    assert len(point) == 2, 'Point is supposed to have two elements'
+
+    x, y = np.round(point)
+    return (int(x), int(y))
 
 
 def flatten_feature_array(xs: np.ndarray) -> np.ndarray:
@@ -217,6 +273,30 @@ def gray_flow_visualization_image(flow: cv.Mat) -> cv.Mat:
     return cv.normalize(viz, viz, 1.0, 0.0, cv.NORM_MINMAX)
 
 
+def matching_features_from_flow(flow: cv.Mat, features: np.ndarray) -> np.ndarray:
+    """
+    From a flow image and a set of image features compute target features.
+
+    Parameters:
+        flow: A flow image from image0 to image1.
+        features: A set of features from image0.
+
+    Returns:
+        Features for image1.
+    """
+    assert is_image(flow), 'Argument is assumed to be an image'
+    assert num_channels(flow) == 2, 'Argument is supposed to have two channels'
+    assert isinstance(
+        features, np.ndarray), 'Argument is supposed to be an array'
+
+    targets = list()
+    for feature in features:
+        x, y = feature
+        targets.append(feature + interpolate_pixel(flow, x, y))
+
+    return np.array(targets)
+
+
 def interpolate_pixel(image: cv.Mat, x: float, y: float) -> any:
     """
     Interpolate an image from floating point pixel coordinates.
@@ -230,6 +310,7 @@ def interpolate_pixel(image: cv.Mat, x: float, y: float) -> any:
         The weighted image value.  
     """
     assert is_image(image), 'Argument is assumed to be an image'
+    assert x >= 0 and y >= 0, 'Pixel coordinates must be >= 0'
 
     # Integer part.
     i_x = math.floor(x)

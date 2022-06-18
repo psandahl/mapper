@@ -32,23 +32,20 @@ def show_flow():
     gray1 = im.gray_convert(bgr1)
     viz1 = im.visualization_image(gray1)
 
-    features0 = im.generate_features(gray0)
-    im.draw_features(viz0, features0)
-
     flow = im.dense_optical_flow(gray0, gray1)
-    flow_viz = im.gray_flow_visualization_image(flow)
+    #flow_viz = im.gray_flow_visualization_image(flow)
 
-    cv.namedWindow('Image 0 with features', cv.WINDOW_NORMAL +
-                   cv.WINDOW_KEEPRATIO + cv.WINDOW_GUI_EXPANDED)
-    cv.imshow('Image 0 with features', viz0)
+    features0 = im.generate_features(gray0)
+    features1 = im.matching_features_from_flow(flow, features0)
+    match = im.draw_matching_features(viz0, features0, viz1, features1, 25)
 
-    cv.namedWindow('Image 1 with features', cv.WINDOW_NORMAL +
-                   cv.WINDOW_KEEPRATIO + cv.WINDOW_GUI_EXPANDED)
-    cv.imshow('Image 1 with features', viz1)
+    # cv.namedWindow('Gray flow image', cv.WINDOW_NORMAL +
+    #               cv.WINDOW_KEEPRATIO + cv.WINDOW_GUI_EXPANDED)
+    #cv.imshow('Gray flow image', flow_viz)
 
-    cv.namedWindow('Gray flow image', cv.WINDOW_NORMAL +
+    cv.namedWindow('Matching features', cv.WINDOW_NORMAL +
                    cv.WINDOW_KEEPRATIO + cv.WINDOW_GUI_EXPANDED)
-    cv.imshow('Gray flow image', flow_viz)
+    cv.imshow('Matching features', match)
 
     cv.waitKey(0)
     cv.destroyAllWindows()
