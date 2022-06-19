@@ -129,9 +129,8 @@ def generate_features(image: cv.Mat) -> np.ndarray:
     # Max corners and image size determines the min distance between features.
     min_distance = min(w, h) / math.sqrt(max_corners)
 
-    features = flatten_feature_array(
-        cv.goodFeaturesToTrack(image, max_corners,
-                               quality_level, min_distance))
+    features = flatten_feature_array(cv.goodFeaturesToTrack(image, max_corners,
+                                                            quality_level, min_distance))
     print(
         f'generate_features() response/request ratio={len(features) / max_corners:.2f}%')
 
@@ -338,3 +337,35 @@ def interpolate_pixel(image: cv.Mat, x: float, y: float) -> any:
         return image[i_y, i_x]
     else:
         return None
+
+
+def find_homography(features0: np.ndarray, features1: np.ndarray) -> tuple:
+    """
+    Estimate homography from matching feature points.
+
+    Parameters:
+        feature0: Features array 0.
+        features1: Features array 1.
+
+    Returns:
+        Tuple with (H, features00, features11).
+    """
+    assert isinstance(
+        features0, np.ndarray), 'Features0 is supposed to be an array'
+    assert isinstance(
+        features1, np.ndarray), 'Features1 is supposed to be an array'
+    assert len(features0) == len(
+        features1), "Arrays are supposed to be of equal length"
+
+    H, inliers = cv.findHomography(features0, features1, cv.RANSAC, 1.0)
+
+    inliers = inliers.flatten()
+
+    features00 = list()
+    features11 = list()
+    for index, inlier in enumerate(inliers):
+        if inlier == 1:
+            features00.append(features0[index])
+            features11.append(features1[index])
+
+    return (H, np.array(features00), np.array(features11))

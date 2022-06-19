@@ -37,7 +37,10 @@ def show_flow():
 
     features0 = im.generate_features(gray0)
     features1 = im.matching_features_from_flow(flow, features0)
-    match = im.draw_matching_features(viz0, features0, viz1, features1, 25)
+
+    H, features00, features11 = im.find_homography(features0, features1)
+
+    match = im.draw_matching_features(viz0, features00, viz1, features11)
 
     # cv.namedWindow('Gray flow image', cv.WINDOW_NORMAL +
     #               cv.WINDOW_KEEPRATIO + cv.WINDOW_GUI_EXPANDED)
