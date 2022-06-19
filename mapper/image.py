@@ -108,7 +108,7 @@ def visualization_image(image: cv.Mat) -> cv.Mat:
         return cv.cvtColor(image, cv.COLOR_GRAY2BGR)
 
 
-def generate_features(image: cv.Mat) -> np.ndarray:
+def generate_features(image: cv.Mat, refine=True) -> np.ndarray:
     """
     Generate corner features in the given image.
 
@@ -121,22 +121,16 @@ def generate_features(image: cv.Mat) -> np.ndarray:
     assert is_image(image), 'Argument is supposed to be an image'
     assert num_channels(image) == 1, 'Image is supposed to be single channel'
 
-    max_corners = 2500
-    quality_level = 0.01
+    quality_level = 0.05
 
-    w, h = image_size(image)
+    features = flatten_feature_array(cv.goodFeaturesToTrack(image, 25000,
+                                                            quality_level, 6))
 
-    # Max corners and image size determines the min distance between features.
-    min_distance = min(w, h) / math.sqrt(max_corners)
-
-    features = flatten_feature_array(cv.goodFeaturesToTrack(image, max_corners,
-                                                            quality_level, min_distance))
-    print(
-        f'generate_features() response/request ratio={len(features) / max_corners:.2f}%')
-
-    criteria = (cv.TERM_CRITERIA_MAX_ITER + cv.TERM_CRITERIA_EPS, 20, 0.05)
-
-    return cv.cornerSubPix(image, features, (3, 3), (-1, -1), criteria)
+    if refine:
+        criteria = (cv.TERM_CRITERIA_MAX_ITER + cv.TERM_CRITERIA_EPS, 20, 0.05)
+        return cv.cornerSubPix(image, features, (3, 3), (-1, -1), criteria)
+    else:
+        return features
 
 
 def draw_features(image: cv.Mat, features: np.ndarray, color: tuple = (0, 255, 0)) -> None:
@@ -244,7 +238,7 @@ def dense_optical_flow(image0: cv.Mat, image1: cv.Mat) -> cv.Mat:
     flow = np.zeros(shape=(rows, cols, 2), dtype=np.float32)
 
     # MEDIUM, FAST, ULTRA_FAST are the creation options.
-    dis = cv.DISOpticalFlow_create(cv.DISOPTICAL_FLOW_PRESET_FAST)
+    dis = cv.DISOpticalFlow_create(cv.DISOPTICAL_FLOW_PRESET_MEDIUM)
     return dis.calc(image0, image1, flow)
 
 
@@ -357,7 +351,7 @@ def find_homography(features0: np.ndarray, features1: np.ndarray) -> tuple:
     assert len(features0) == len(
         features1), "Arrays are supposed to be of equal length"
 
-    H, inliers = cv.findHomography(features0, features1, cv.RANSAC, 1.0)
+    H, inliers = cv.findHomography(features0, features1, cv.RANSAC, 0.5)
 
     inliers = inliers.flatten()
 
