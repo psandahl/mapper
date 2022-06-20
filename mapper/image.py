@@ -1,5 +1,3 @@
-from typing import Tuple
-from xmlrpc.client import Boolean
 import cv2 as cv
 import numpy as np
 
@@ -7,7 +5,7 @@ import math
 import random
 
 
-def is_image(value: any) -> Boolean:
+def is_image(value: any) -> bool:
     """
     Check if something is an image.
 

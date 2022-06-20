@@ -2,6 +2,7 @@ import cv2 as cv
 import numpy as np
 
 import mapper.image as im
+import mapper.keypoint as kp
 
 
 def show_images():
@@ -84,9 +85,41 @@ def show_sparse_flow():
     cv.destroyAllWindows()
 
 
+def show_keypoints():
+    bgr0 = im.read_image_bgr('c:/Users/patri/bilder/IMG_0145.jpeg')
+    gray0 = im.gray_convert(bgr0)
+
+    viz0 = im.visualization_image(gray0)
+    viz1 = im.visualization_image(gray0)
+
+    points0 = kp.detect(gray0, variant=2)
+    features0 = cv.KeyPoint_convert(points0)
+
+    points1 = kp.adaptive_non_maximal_suppression(points0, 500)
+    features1 = cv.KeyPoint_convert(points1)
+
+    print(f'Num features={len(features0)}')
+    print(f'Num filtered features={len(features1)}')
+
+    im.draw_features(viz0, features0)
+    im.draw_features(viz1, features1)
+
+    cv.namedWindow('Features0', cv.WINDOW_NORMAL +
+                   cv.WINDOW_KEEPRATIO + cv.WINDOW_GUI_EXPANDED)
+    cv.imshow('Features0', viz0)
+
+    cv.namedWindow('Features1', cv.WINDOW_NORMAL +
+                   cv.WINDOW_KEEPRATIO + cv.WINDOW_GUI_EXPANDED)
+    cv.imshow('Features1', viz1)
+
+    cv.waitKey(0)
+    cv.destroyAllWindows()
+
+
 def main():
-    show_dense_flow()
-    show_sparse_flow()
+    # show_dense_flow()
+    # show_sparse_flow()
+    show_keypoints()
 
 
 if __name__ == '__main__':
