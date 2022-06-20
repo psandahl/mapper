@@ -86,7 +86,7 @@ def show_sparse_flow():
 
 
 def show_keypoints():
-    bgr0 = im.read_image_bgr('c:/Users/patri/bilder/IMG_0145.jpeg')
+    bgr0 = im.read_image_bgr('c:/Users/patri/bilder/IMG_0162.jpeg')
     gray0 = im.gray_convert(bgr0)
 
     viz0 = im.visualization_image(gray0)

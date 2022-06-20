@@ -1,6 +1,8 @@
+from cmath import isinf
 import cv2 as cv
 import numpy as np
 
+import math
 import sys
 
 import mapper.image as im
@@ -17,7 +19,7 @@ def detect(image: cv.Mat, variant=0):
     elif variant == 1:  # AKAZE
         impl = cv.AKAZE_create()
     elif variant == 2:  # Agast
-        impl = cv.AgastFeatureDetector_create(55)
+        impl = cv.AgastFeatureDetector_create(75)
         brief = cv.xfeatures2d.BriefDescriptorExtractor_create()
         print(f'Brief size={brief.descriptorSize()}')
 
@@ -47,10 +49,14 @@ def adaptive_non_maximal_suppression(keypoints, num_to_keep):
 
         for kpt_j in sorted_keypoints:
             if not kpt_j is kpt_i and kpt_j.response > response:
-                pt_i = np.array(kpt_i.pt)
-                pt_j = np.array(kpt_j.pt)
-                norm = np.linalg.norm(pt_i - pt_j)
-                radius = min(radius, norm)
+                #pt_i = np.array(kpt_i.pt)
+                #pt_j = np.array(kpt_j.pt)
+                #norm = np.linalg.norm(pt_i - pt_j)
+                #radius = min(radius, norm)
+                x_d = kpt_i.pt[0] - kpt_j.pt[0]
+                y_d = kpt_i.pt[1] - kpt_j.pt[1]
+                squared_norm = x_d * x_d + y_d * y_d
+                radius = min(radius, squared_norm)
             else:
                 break
 
@@ -61,12 +67,9 @@ def adaptive_non_maximal_suppression(keypoints, num_to_keep):
 
     radii_sorted.sort(reverse=True)
 
-    print(radii_sorted[0])
-    print(radii_sorted[len(radii_sorted) - 1])
-
     descision_radius = radii_sorted[num_to_keep]
-    anms_points = list()
 
+    anms_points = list()
     for i, radius in enumerate(radii):
         if radius >= descision_radius:
             anms_points.append(sorted_keypoints[i])
