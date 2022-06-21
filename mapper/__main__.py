@@ -5,25 +5,6 @@ import mapper.image as im
 import mapper.keypoint as kp
 
 
-def show_images():
-    bgr = im.read_image_bgr('c:/Users/patri/bilder/IMG_0111.jpeg')
-
-    gray = im.gray_convert(bgr)
-    viz = im.visualization_image(gray)
-
-    features = im.generate_features(gray)
-    im.draw_features(viz, features)
-
-    cv.namedWindow('show', cv.WINDOW_NORMAL +
-                   cv.WINDOW_KEEPRATIO + cv.WINDOW_GUI_EXPANDED)
-
-    cv.setWindowTitle('show', 'Features')
-    cv.imshow('show', viz)
-    cv.waitKey(0)
-
-    cv.destroyWindow('show')
-
-
 def show_dense_flow():
     bgr0 = im.read_image_bgr('c:/Users/patri/bilder/IMG_0161.jpeg')
     gray0 = im.gray_convert(bgr0)
@@ -58,35 +39,8 @@ def show_dense_flow():
     cv.destroyAllWindows()
 
 
-def show_sparse_flow():
-    bgr0 = im.read_image_bgr('c:/Users/patri/bilder/IMG_0161.jpeg')
-    gray0 = im.gray_convert(bgr0)
-    viz0 = im.visualization_image(gray0)
-
-    bgr1 = im.read_image_bgr('c:/Users/patri/bilder/IMG_0162.jpeg')
-    gray1 = im.gray_convert(bgr1)
-    viz1 = im.visualization_image(gray1)
-
-    features0 = im.generate_features(gray0)
-    features1 = im.sparse_optical_flow(gray0, gray1, features0)
-
-    H, features00, features11 = im.find_homography(features0, features1)
-
-    print(f'features0={len(features0)}, features00={len(features00)}')
-
-    match = im.draw_matching_features(
-        viz0, features00, viz1, features11, step=2)
-
-    cv.namedWindow('Matching features', cv.WINDOW_NORMAL +
-                   cv.WINDOW_KEEPRATIO + cv.WINDOW_GUI_EXPANDED)
-    cv.imshow('Matching features', match)
-
-    cv.waitKey(0)
-    cv.destroyAllWindows()
-
-
 def show_keypoints():
-    bgr0 = im.read_image_bgr('c:/Users/patri/bilder/IMG_0111.jpeg')
+    bgr0 = im.read_image_bgr('c:/Users/patri/bilder/IMG_0145.jpeg')
     gray0 = im.gray_convert(bgr0)
 
     viz0 = im.visualization_image(gray0)
@@ -118,7 +72,6 @@ def show_keypoints():
 
 def main():
     # show_dense_flow()
-    # show_sparse_flow()
     show_keypoints()
 
 

@@ -331,16 +331,6 @@ def interpolate_pixel(image: cv.Mat, x: float, y: float) -> any:
         return None
 
 
-def sparse_optical_flow(image0: cv.Mat, image1: cv.Mat, features0: np.ndarray) -> np.ndarray:
-    """
-    Compute sparse optical flow.
-    """
-    features1, status, err = cv.calcOpticalFlowPyrLK(
-        image0, image1, features0, None)
-
-    return features1
-
-
 def find_homography(features0: np.ndarray, features1: np.ndarray) -> tuple:
     """
     Estimate homography from matching feature points.
@@ -350,7 +340,7 @@ def find_homography(features0: np.ndarray, features1: np.ndarray) -> tuple:
         features1: Features array 1.
 
     Returns:
-        Tuple with (H, features00, features11).
+        Tuple with (H, inliers from array 0, inliers from array 1).
     """
     assert isinstance(
         features0, np.ndarray), 'Features0 is supposed to be an array'

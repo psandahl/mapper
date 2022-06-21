@@ -4,6 +4,9 @@ import math
 
 import mapper.image as im
 
+detector = cv.AgastFeatureDetector_create()
+extractor = cv.xfeatures2d.BriefDescriptorExtractor_create()
+
 
 def detect(image: cv.Mat, threshold=15) -> tuple:
     """
@@ -19,10 +22,10 @@ def detect(image: cv.Mat, threshold=15) -> tuple:
     assert im.is_image(image), 'Argument is assumed to be an image'
     assert im.num_channels(image) == 1, 'Image is assumed to be gray scale'
 
-    detector = cv.AgastFeatureDetector_create(threshold)
-    return detector.detect(image)
+    detector.setThreshold(threshold)
+    detector.setNonmaxSuppression(False)
 
-    # brief = cv.xfeatures2d.BriefDescriptorExtractor_create()
+    return detector.detect(image)
 
 
 def refine(keypoints: tuple, num_ret_points: int, image_size: tuple, tolerance: float = 0.1) -> list:
