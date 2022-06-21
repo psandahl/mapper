@@ -92,10 +92,9 @@ def show_keypoints():
     viz0 = im.visualization_image(gray0)
     viz1 = im.visualization_image(gray0)
 
-    points0 = kp.detect(gray0, variant=2)
+    points0 = kp.detect(gray0)
     features0 = cv.KeyPoint_convert(points0)
 
-    #points1 = kp.adaptive_non_maximal_suppression(points0, 500)
     points1 = kp.refine(points0, 500, im.image_size(gray0))
     features1 = cv.KeyPoint_convert(points1)
 

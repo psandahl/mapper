@@ -5,25 +5,24 @@ import math
 import mapper.image as im
 
 
-def detect(image: cv.Mat, variant=0) -> tuple:
+def detect(image: cv.Mat, threshold=15) -> tuple:
+    """
+    Detect keypoints in a gray scale image using AGAST.
+
+    Parameters:
+        image: Image to detect keypoints in.
+        threshold: AGAST threshold (lower = more points).
+
+    Returns:
+        Keypoints for the image.
+    """
     assert im.is_image(image), 'Argument is assumed to be an image'
+    assert im.num_channels(image) == 1, 'Image is assumed to be gray scale'
 
-    impl = None
+    detector = cv.AgastFeatureDetector_create(threshold)
+    return detector.detect(image)
 
-    if variant == 0:  # ORB
-        impl = cv.ORB_create()
-        impl.setMaxFeatures(10000)
-    elif variant == 1:  # AKAZE
-        impl = cv.AKAZE_create()
-    elif variant == 2:  # Agast
-        impl = cv.AgastFeatureDetector_create(25)
-        brief = cv.xfeatures2d.BriefDescriptorExtractor_create()
-        print(f'Brief size={brief.descriptorSize()}')
-
-    print(f'Descriptor size={impl.descriptorSize()}')
-    print(f'Descriptor type={impl.descriptorType()}')
-
-    return impl.detect(image)
+    # brief = cv.xfeatures2d.BriefDescriptorExtractor_create()
 
 
 def refine(keypoints: tuple, num_ret_points: int, image_size: tuple, tolerance: float = 0.1) -> list:
@@ -38,7 +37,7 @@ def refine(keypoints: tuple, num_ret_points: int, image_size: tuple, tolerance: 
         keypoints: Detected keypoints.
         num_ret_points: The number of wanted points to return (approx).
         image_size: Tuple (width, height) of image.
-        tolerance: Algoritm parameter.
+        tolerance: Algorithm parameter.
 
     Returns:
         The selected keypoints.
