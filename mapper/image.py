@@ -88,6 +88,23 @@ def gray_convert(image: cv.Mat) -> cv.Mat:
         return image.copy()
 
 
+def scale_image(image: cv.Mat, factor: float) -> cv.Mat:
+    """
+    Scale an image up or down.
+
+    Parameters:
+        image: The image to be scaled.
+        factor: The factor to scale the image with.
+
+    Returns:
+        The scaled image.
+    """
+    assert is_image(image), 'Argument is supposed to be an image'
+
+    interpolation = cv.INTER_AREA if factor < 1.0 else cv.INTER_CUBIC
+    return cv.resize(image, None, None, factor, factor, interpolation)
+
+
 def visualization_image(image: cv.Mat) -> cv.Mat:
     """
     Create a 3-channel copy of an image, suitable for presentation visualizations.
