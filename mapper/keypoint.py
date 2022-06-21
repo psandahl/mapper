@@ -141,3 +141,22 @@ def refine(keypoints: tuple, num_ret_points: int, image_size: tuple, tolerance: 
         selected_keypoints.append(keypoints[result_list[i]])
 
     return selected_keypoints
+
+
+def compute(image: cv.Mat, keypoints: any) -> tuple:
+    """
+    Compute descriptors for a set of keypoints.
+
+    Parameters:
+        image: Image for which the descriptors are to be computed.
+        keypoints: List or tuple with keypoints.
+
+    Returns:
+        Tuple (keypoints, descriptors).
+    """
+    assert im.is_image(image), 'Argument is assumed to be an image'
+    assert im.num_channels(image), 'Image is supposed to be a gray scale image'
+    assert isinstance(keypoints, tuple) or isinstance(
+        keypoints, list), 'Tuple or list'
+
+    return detector.compute(image, keypoints)

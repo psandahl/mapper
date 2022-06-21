@@ -7,9 +7,9 @@ import mapper.keypoint as kp
 
 def show_keypoints():
     gray0 = im.scale_image(im.gray_convert(
-        im.read_image_bgr('c:/Users/patri/bilder/IMG_0145.jpeg')), 0.5)
+        im.read_image_bgr('c:/Users/patri/bilder/IMG_0161.jpeg')), 0.5)
     gray1 = im.scale_image(im.gray_convert(
-        im.read_image_bgr('c:/Users/patri/bilder/IMG_0146.jpeg')), 0.5)
+        im.read_image_bgr('c:/Users/patri/bilder/IMG_0162.jpeg')), 0.5)
 
     points0 = kp.refine(kp.detect(gray0), 700, im.image_size(gray0))
     points1 = kp.refine(kp.detect(gray1), 700, im.image_size(gray1))
