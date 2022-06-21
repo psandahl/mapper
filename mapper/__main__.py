@@ -86,7 +86,7 @@ def show_sparse_flow():
 
 
 def show_keypoints():
-    bgr0 = im.read_image_bgr('c:/Users/patri/bilder/IMG_0162.jpeg')
+    bgr0 = im.read_image_bgr('c:/Users/patri/bilder/IMG_0111.jpeg')
     gray0 = im.gray_convert(bgr0)
 
     viz0 = im.visualization_image(gray0)
@@ -95,7 +95,8 @@ def show_keypoints():
     points0 = kp.detect(gray0, variant=2)
     features0 = cv.KeyPoint_convert(points0)
 
-    points1 = kp.adaptive_non_maximal_suppression(points0, 500)
+    #points1 = kp.adaptive_non_maximal_suppression(points0, 500)
+    points1 = kp.refine(points0, 500, im.image_size(gray0))
     features1 = cv.KeyPoint_convert(points1)
 
     print(f'Num features={len(features0)}')

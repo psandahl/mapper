@@ -1,14 +1,11 @@
-from cmath import isinf
 import cv2 as cv
-import numpy as np
 
 import math
-import sys
 
 import mapper.image as im
 
 
-def detect(image: cv.Mat, variant=0):
+def detect(image: cv.Mat, variant=0) -> tuple:
     assert im.is_image(image), 'Argument is assumed to be an image'
 
     impl = None
@@ -19,7 +16,7 @@ def detect(image: cv.Mat, variant=0):
     elif variant == 1:  # AKAZE
         impl = cv.AKAZE_create()
     elif variant == 2:  # Agast
-        impl = cv.AgastFeatureDetector_create(75)
+        impl = cv.AgastFeatureDetector_create(25)
         brief = cv.xfeatures2d.BriefDescriptorExtractor_create()
         print(f'Brief size={brief.descriptorSize()}')
 
@@ -29,103 +26,116 @@ def detect(image: cv.Mat, variant=0):
     return impl.detect(image)
 
 
-def adaptive_non_maximal_suppression(keypoints, num_to_keep):
+def refine(keypoints: tuple, num_ret_points: int, image_size: tuple, tolerance: float = 0.1) -> list:
     """
-    Inspired from: https://answers.opencv.org/question/93317/orb-keypoints-distribution-over-an-image/
+    Refine keypoints to select the strongest points, distributed
+    over the image.
+
+    This is the supression via square covering (SSC) algorithm from
+    https://github.com/BAILOOL/ANMS-Codes
+
+    Parameters:
+        keypoints: Detected keypoints.
+        num_ret_points: The number of wanted points to return (approx).
+        image_size: Tuple (width, height) of image.
+        tolerance: Algoritm parameter.
+
+    Returns:
+        The selected keypoints.
     """
-    print(f'anms points={len(keypoints)}')
-    if len(keypoints) < num_to_keep:
-        return keypoints
+    keypoints = sorted(keypoints, key=lambda kp: kp.response, reverse=True)
+    cols, rows = image_size
 
-    sorted_keypoints = sorted(
-        keypoints, key=lambda pt: pt.response, reverse=True)
-    radii = list()
-    radii_sorted = list()
+    exp1 = rows + cols + 2 * num_ret_points
+    exp2 = (
+        4 * cols
+        + 4 * num_ret_points
+        + 4 * rows * num_ret_points
+        + rows * rows
+        + cols * cols
+        - 2 * rows * cols
+        + 4 * rows * cols * num_ret_points
+    )
+    exp3 = math.sqrt(exp2)
+    exp4 = num_ret_points - 1
 
-    robust_coeff = 1.11
-    for kpt_i in sorted_keypoints:
-        response = kpt_i.response * robust_coeff
-        radius = sys.float_info.max
+    sol1 = -round(float(exp1 + exp3) / exp4)  # first solution
+    sol2 = -round(float(exp1 - exp3) / exp4)  # second solution
 
-        for kpt_j in sorted_keypoints:
-            if not kpt_j is kpt_i and kpt_j.response > response:
-                #pt_i = np.array(kpt_i.pt)
-                #pt_j = np.array(kpt_j.pt)
-                #norm = np.linalg.norm(pt_i - pt_j)
-                #radius = min(radius, norm)
-                x_d = kpt_i.pt[0] - kpt_j.pt[0]
-                y_d = kpt_i.pt[1] - kpt_j.pt[1]
-                squared_norm = x_d * x_d + y_d * y_d
-                radius = min(radius, squared_norm)
-            else:
-                break
+    high = (
+        sol1 if (sol1 > sol2) else sol2
+    )  # binary search range initialization with positive solution
+    low = math.floor(math.sqrt(len(keypoints) / num_ret_points))
 
-        radii.append(radius)
-        radii_sorted.append(radius)
-        if len(radii) % 1000 == 0:
-            print(f'Done with iteration={len(radii)}')
+    prev_width = -1
+    selected_keypoints = []
+    result_list = []
+    result = []
+    complete = False
+    k = num_ret_points
+    k_min = round(k - (k * tolerance))
+    k_max = round(k + (k * tolerance))
 
-    radii_sorted.sort(reverse=True)
+    while not complete:
+        width = low + (high - low) / 2
+        if (
+            width == prev_width or low > high
+        ):  # needed to reassure the same radius is not repeated again
+            result_list = result  # return the keypoints from the previous iteration
+            break
 
-    descision_radius = radii_sorted[num_to_keep]
+        c = width / 2  # initializing Grid
+        num_cell_cols = int(math.floor(cols / c))
+        num_cell_rows = int(math.floor(rows / c))
+        covered_vec = [
+            [False for _ in range(num_cell_cols + 1)] for _ in range(num_cell_rows + 1)
+        ]
+        result = []
 
-    anms_points = list()
-    for i, radius in enumerate(radii):
-        if radius >= descision_radius:
-            anms_points.append(sorted_keypoints[i])
+        for i in range(len(keypoints)):
+            row = int(
+                math.floor(keypoints[i].pt[1] / c)
+            )  # get position of the cell current point is located at
+            col = int(math.floor(keypoints[i].pt[0] / c))
+            if not covered_vec[row][col]:  # if the cell is not covered
+                result.append(i)
+                # get range which current radius is covering
+                row_min = int(
+                    (row - math.floor(width / c))
+                    if ((row - math.floor(width / c)) >= 0)
+                    else 0
+                )
+                row_max = int(
+                    (row + math.floor(width / c))
+                    if ((row + math.floor(width / c)) <= num_cell_rows)
+                    else num_cell_rows
+                )
+                col_min = int(
+                    (col - math.floor(width / c))
+                    if ((col - math.floor(width / c)) >= 0)
+                    else 0
+                )
+                col_max = int(
+                    (col + math.floor(width / c))
+                    if ((col + math.floor(width / c)) <= num_cell_cols)
+                    else num_cell_cols
+                )
+                for row_to_cover in range(row_min, row_max + 1):
+                    for col_to_cover in range(col_min, col_max + 1):
+                        if not covered_vec[row_to_cover][col_to_cover]:
+                            # cover cells within the square bounding box with width w
+                            covered_vec[row_to_cover][col_to_cover] = True
 
-    return anms_points
+        if k_min <= len(result) <= k_max:  # solution found
+            result_list = result
+            complete = True
+        elif len(result) < k_min:
+            high = width - 1  # update binary search range
+        else:
+            low = width + 1
+        prev_width = width
 
+    for i in range(len(result_list)):
+        selected_keypoints.append(keypoints[result_list[i]])
 
-# void adaptiveNonMaximalSuppresion( std::vector<cv::KeyPoint>& keypoints,
-#                                        const int numToKeep )
-#     {
-#       if( keypoints.size() < numToKeep ) { return; }
-
-#       //
-#       // Sort by response
-#       //
-#       std::sort( keypoints.begin(), keypoints.end(),
-#                  [&]( const cv::KeyPoint& lhs, const cv::KeyPoint& rhs )
-#                  {
-#                    return lhs.response > rhs.response;
-#                  } );
-
-#       std::vector<cv::KeyPoint> anmsPts;
-
-#       std::vector<double> radii;
-#       radii.resize( keypoints.size() );
-#       std::vector<double> radiiSorted;
-#       radiiSorted.resize( keypoints.size() );
-
-#       const float robustCoeff = 1.11; // see paper
-
-#       for( int i = 0; i < keypoints.size(); ++i )
-#       {
-#         const float response = keypoints[i].response * robustCoeff;
-#         double radius = std::numeric_limits<double>::max();
-#         for( int j = 0; j < i && keypoints[j].response > response; ++j )
-#         {
-#           radius = std::min( radius, cv::norm( keypoints[i].pt - keypoints[j].pt ) );
-#         }
-#         radii[i]       = radius;
-#         radiiSorted[i] = radius;
-#       }
-
-#       std::sort( radiiSorted.begin(), radiiSorted.end(),
-#                  [&]( const double& lhs, const double& rhs )
-#                  {
-#                    return lhs > rhs;
-#                  } );
-
-#       const double decisionRadius = radiiSorted[numToKeep];
-#       for( int i = 0; i < radii.size(); ++i )
-#       {
-#         if( radii[i] >= decisionRadius )
-#         {
-#           anmsPts.push_back( keypoints[i] );
-#         }
-#       }
-
-#       anmsPts.swap( keypoints );
-#     }
+    return selected_keypoints
