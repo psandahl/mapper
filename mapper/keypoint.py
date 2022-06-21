@@ -6,6 +6,7 @@ import mapper.image as im
 
 detector = cv.AgastFeatureDetector_create()
 extractor = cv.xfeatures2d.BriefDescriptorExtractor_create()
+matcher = cv.BFMatcher(cv.NORM_HAMMING)
 
 
 def detect(image: cv.Mat, threshold=15) -> tuple:
@@ -28,7 +29,7 @@ def detect(image: cv.Mat, threshold=15) -> tuple:
     return detector.detect(image)
 
 
-def refine(keypoints: tuple, num_ret_points: int, image_size: tuple, tolerance: float = 0.1) -> list:
+def ssc_refine(keypoints: tuple, num_ret_points: int, image_size: tuple, tolerance: float = 0.1) -> list:
     """
     Refine keypoints to select the strongest points, distributed
     over the image.
@@ -159,4 +160,50 @@ def compute(image: cv.Mat, keypoints: any) -> tuple:
     assert isinstance(keypoints, tuple) or isinstance(
         keypoints, list), 'Tuple or list'
 
-    return detector.compute(image, keypoints)
+    return extractor.compute(image, keypoints)
+
+
+def match(train: tuple, query: tuple) -> dict:
+    """
+    Match descriptors and select keypoints and descriptors from best matches.
+
+    Parameters:
+        train: Tuple (keypoints, descriptors).
+        query: Tuple (keypoints, descriptors).
+
+    Returns:
+        A dictionary with keys: train_keypoints, train_descriptors,
+                                query_keypoints, query_descriptors
+    """
+    kpt0, desc0 = train
+    kpt1, desc1 = query
+
+    raw_matches = matcher.knnMatch(desc0, desc1, 2)
+
+    kpt00 = list()
+    desc00 = list()
+    kpt11 = list()
+    desc11 = list()
+    for m, n in raw_matches:
+        if m.distance < n.distance * 0.8:  # Lowe's ratio.
+            # Yes, this is a bit weird. Train index into 1 and
+            # query index into 0. But it is how it is.
+
+            # https://stackoverflow.com/questions/13318853/opencv-drawmatches-queryidx-and-trainidx/13320083#13320083
+            train_idx = m.trainIdx
+            query_idx = m.queryIdx
+
+            kpt00.append(kpt0[query_idx])
+            desc00.append(desc0[query_idx])
+            kpt11.append(kpt1[train_idx])
+            desc11.append(desc1[train_idx])
+
+    print(len(kpt00))
+
+    match = dict()
+    match['train_keypoints'] = kpt00
+    match['train_descriptors'] = desc00
+    match['query_keypoints'] = kpt11
+    match['query_descriptors'] = desc11
+
+    return match
