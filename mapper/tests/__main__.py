@@ -3,7 +3,21 @@ import numpy as np
 
 import unittest
 
+import mapper.keypoint as kp
 import mapper.image as im
+
+
+class KeypointTestCase(unittest.TestCase):
+    def test_hamming_distance(self):
+        desc0 = np.packbits(
+            np.array([[[1, 0, 1, 0, 1, 0, 1, 1], [0, 1, 1, 0, 0, 0, 1, 0]]]), axis=-1)
+
+        # Differ in four positions.
+        desc1 = np.packbits(
+            np.array([[[1, 0, 1, 0, 1, 1, 1, 0], [0, 1, 0, 0, 0, 0, 1, 1]]]), axis=-1)
+
+        self.assertEqual(0, kp.hamming_distance(desc0, desc0))
+        self.assertEqual(4, kp.hamming_distance(desc0, desc1))
 
 
 class ImageTestCase(unittest.TestCase):

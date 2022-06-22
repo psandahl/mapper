@@ -244,3 +244,10 @@ def H_refine(match: dict, err: int = 1.0) -> dict:
     H_match['query_descriptors'] = desc1
 
     return (H, H_match)
+
+
+def hamming_distance(desc0, desc1):
+    """
+    Compute the Hamming distance between two binary descriptors.
+    """
+    return np.unpackbits((desc0 ^ desc1).view('uint8')).sum()
