@@ -1,4 +1,5 @@
 import cv2 as cv
+import numpy as np
 
 import math
 
@@ -29,7 +30,7 @@ def detect(image: cv.Mat, threshold=15) -> tuple:
     return detector.detect(image)
 
 
-def ssc_refine(keypoints: tuple, num_ret_points: int, image_size: tuple, tolerance: float = 0.1) -> list:
+def SSC_refine(keypoints: tuple, num_ret_points: int, image_size: tuple, tolerance: float = 0.1) -> list:
     """
     Refine keypoints to select the strongest points, distributed
     over the image.
@@ -198,8 +199,6 @@ def match(train: tuple, query: tuple) -> dict:
             kpt11.append(kpt1[train_idx])
             desc11.append(desc1[train_idx])
 
-    print(len(kpt00))
-
     match = dict()
     match['train_keypoints'] = kpt00
     match['train_descriptors'] = desc00
@@ -207,3 +206,41 @@ def match(train: tuple, query: tuple) -> dict:
     match['query_descriptors'] = desc11
 
     return match
+
+
+def H_refine(match: dict, err: int = 1.0) -> dict:
+    """
+    Refine a match using homography constraint.
+
+    Parameters:
+        match: The input matching.
+        err: The max error for solving for H.
+
+    Returns:
+        Tuple with (H, H inlier match).
+    """
+    train = cv.KeyPoint_convert(match['train_keypoints'])
+    query = cv.KeyPoint_convert(match['query_keypoints'])
+
+    H, inliers = cv.findHomography(
+        np.array(train), np.array(query), cv.RANSAC, err)
+    inliers = inliers.flatten()
+
+    kpt0 = list()
+    desc0 = list()
+    kpt1 = list()
+    desc1 = list()
+    for index, value in enumerate(inliers):
+        if value == 1:
+            kpt0.append(match['train_keypoints'][index])
+            desc0.append(match['train_descriptors'][index])
+            kpt1.append(match['query_keypoints'][index])
+            desc1.append(match['query_descriptors'][index])
+
+    H_match = dict()
+    H_match['train_keypoints'] = kpt0
+    H_match['train_descriptors'] = desc0
+    H_match['query_keypoints'] = kpt1
+    H_match['query_descriptors'] = desc1
+
+    return (H, H_match)
