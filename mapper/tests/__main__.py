@@ -3,9 +3,10 @@ import numpy as np
 
 import unittest
 
-import mapper.keypoint as kp
 import mapper.image as im
-import mapper.image_geometry as img
+import mapper.keypoint as kp
+import mapper.matrix as mat
+import mapper.utils as utils
 
 
 class KeypointTestCase(unittest.TestCase):
@@ -64,9 +65,40 @@ class ImageTestCase(unittest.TestCase):
         self.assertIsInstance(y, int)
 
 
-class ImageGeometryTestCase(unittest.TestCase):
+class UtilsTestCase(unittest.TestCase):
     def test_fov_from_focal_length(self):
-        self.assertEqual(90, img.fov_from_focal_length(1.0, 2.0))
+        self.assertEqual(90, utils.fov_from_focal_length(1.0, 2.0))
+
+    def test_focal_length_from_fov(self):
+        self.assertTrue(2, utils.focal_length_from_fov(90, 2.0))
+
+    def test_to_and_from_fov(self):
+        media_size = 1024
+
+        self.assertAlmostEqual(72.2, utils.fov_from_focal_length(
+            utils.focal_length_from_fov(72.2, media_size), media_size))
+
+        self.assertAlmostEqual(45.0, utils.fov_from_focal_length(
+            utils.focal_length_from_fov(45.0, media_size), media_size))
+
+        self.assertAlmostEqual(11.123, utils.fov_from_focal_length(
+            utils.focal_length_from_fov(11.123, media_size), media_size))
+
+        self.assertAlmostEqual(0.2, utils.fov_from_focal_length(
+            utils.focal_length_from_fov(0.2, media_size), media_size))
+
+
+class MatrixTestCase(unittest.TestCase):
+    def test_to_and_from_ideal_intrinsic_matrix(self):
+        fov = (30, 20)
+        size = (1024, 768)
+
+        imat = mat.ideal_intrinsic_matrix(fov, size)
+        fov1, size1 = mat.decomp_intrinsic_matrix(imat)
+
+        self.assertAlmostEqual(fov[0], fov1[0])
+        self.assertAlmostEqual(fov[1], fov1[1])
+        self.assertTupleEqual(size, size1)
 
 
 def run_tests():

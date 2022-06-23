@@ -1,8 +1,6 @@
 import cv2 as cv
 import numpy as np
 
-import math
-
 import mapper.image as im
 
 
@@ -57,20 +55,3 @@ def matching_features_from_flow(flow: cv.Mat, features: np.ndarray) -> np.ndarra
         targets.append(feature + im.interpolate_pixel(flow, x, y))
 
     return np.array(targets)
-
-
-def fov_from_focal_length(focal_length: float, media_size: float) -> float:
-    """
-    Compute the field of view given a focal length and 
-    a media size (in same units).
-
-    Parameters:
-        focal_length: The focal length.
-        media_size: The size of the sensor/image media.
-
-    Returns:
-        The field of view in degrees.
-    """
-    fov = math.atan2(media_size / 2.0, focal_length) * 2.0
-
-    return math.degrees(fov)
