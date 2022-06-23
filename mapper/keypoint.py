@@ -226,6 +226,13 @@ def H_refine(match: dict, err: int = 1.0) -> dict:
         np.array(train), np.array(query), cv.RANSAC, err)
     inliers = inliers.flatten()
 
+    return (H, filter_inliers(match, inliers))
+
+
+def filter_inliers(match: dict, inliers: np.ndarray) -> dict:
+    """
+    Filtering a matching using inlier array.
+    """
     kpt0 = list()
     desc0 = list()
     kpt1 = list()
@@ -237,13 +244,13 @@ def H_refine(match: dict, err: int = 1.0) -> dict:
             kpt1.append(match['query_keypoints'][index])
             desc1.append(match['query_descriptors'][index])
 
-    H_match = dict()
-    H_match['train_keypoints'] = kpt0
-    H_match['train_descriptors'] = desc0
-    H_match['query_keypoints'] = kpt1
-    H_match['query_descriptors'] = desc1
+    match1 = dict()
+    match1['train_keypoints'] = kpt0
+    match1['train_descriptors'] = desc0
+    match1['query_keypoints'] = kpt1
+    match1['query_descriptors'] = desc1
 
-    return (H, H_match)
+    return match1
 
 
 def hamming_distance(desc0, desc1):
