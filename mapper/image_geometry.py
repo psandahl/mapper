@@ -1,6 +1,8 @@
 import cv2 as cv
 import numpy as np
 
+import math
+
 import mapper.image as im
 
 
@@ -57,33 +59,18 @@ def matching_features_from_flow(flow: cv.Mat, features: np.ndarray) -> np.ndarra
     return np.array(targets)
 
 
-def find_homography(features0: np.ndarray, features1: np.ndarray) -> tuple:
+def fov_from_focal_length(focal_length: float, media_size: float) -> float:
     """
-    Estimate homography from matching feature points.
+    Compute the field of view given a focal length and 
+    a media size (in same units).
 
     Parameters:
-        feature0: Features array 0.
-        features1: Features array 1.
+        focal_length: The focal length.
+        media_size: The size of the sensor/image media.
 
     Returns:
-        Tuple with (H, inliers from array 0, inliers from array 1).
+        The field of view in degrees.
     """
-    assert isinstance(
-        features0, np.ndarray), 'Features0 is supposed to be an array'
-    assert isinstance(
-        features1, np.ndarray), 'Features1 is supposed to be an array'
-    assert len(features0) == len(
-        features1), "Arrays are supposed to be of equal length"
+    fov = math.atan2(media_size / 2.0, focal_length) * 2.0
 
-    H, inliers = cv.findHomography(features0, features1, cv.RANSAC, 0.5)
-
-    inliers = inliers.flatten()
-
-    features00 = list()
-    features11 = list()
-    for index, inlier in enumerate(inliers):
-        if inlier == 1:
-            features00.append(features0[index])
-            features11.append(features1[index])
-
-    return (H, np.array(features00), np.array(features11))
+    return math.degrees(fov)

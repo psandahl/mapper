@@ -5,6 +5,7 @@ import unittest
 
 import mapper.keypoint as kp
 import mapper.image as im
+import mapper.image_geometry as img
 
 
 class KeypointTestCase(unittest.TestCase):
@@ -61,6 +62,11 @@ class ImageTestCase(unittest.TestCase):
         self.assertEqual(y, 2)
         self.assertIsInstance(x, int)
         self.assertIsInstance(y, int)
+
+
+class ImageGeometryTestCase(unittest.TestCase):
+    def test_fov_from_focal_length(self):
+        self.assertEqual(90, img.fov_from_focal_length(1.0, 2.0))
 
 
 def run_tests():
