@@ -208,7 +208,7 @@ def match(train: tuple, query: tuple) -> dict:
     return match
 
 
-def H_refine(match: dict, err: int = 1.0) -> dict:
+def H_refine(match: dict, err: float = 1.0) -> dict:
     """
     Refine a match using homography constraint.
 
@@ -219,14 +219,43 @@ def H_refine(match: dict, err: int = 1.0) -> dict:
     Returns:
         Tuple with (H, H inlier match).
     """
+    assert isinstance(match, dict), 'match is suppsed to be a dictionary'
+
     train = cv.KeyPoint_convert(match['train_keypoints'])
     query = cv.KeyPoint_convert(match['query_keypoints'])
 
     H, inliers = cv.findHomography(
         np.array(train), np.array(query), cv.RANSAC, err)
-    inliers = inliers.flatten()
 
-    return (H, filter_inliers(match, inliers))
+    return (H, filter_inliers(match, inliers.flatten()))
+
+
+def E_refine(match: dict, intrinsic_matrix: cv.Mat, err: float = 0.075) -> tuple:
+    """
+    Refine a match using essential matrix constraint.
+
+    Parameters:
+        match: The input matching.
+        err: The max error for solving for E.
+
+    Returns:
+        Tuple with (E, E inlier match).
+    """
+    assert isinstance(match, dict), 'match is assumed to be a dictionary'
+    assert isinstance(
+        intrinsic_matrix, np.ndarray), 'intrinsic matrix is assumed to be a matrix'
+    assert intrinsic_matrix.shape == (
+        3, 3), 'intrinsic matrix is assumed to be 3x3'
+
+    train = cv.KeyPoint_convert(match['train_keypoints'])
+    query = cv.KeyPoint_convert(match['query_keypoints'])
+
+    E, inliers = cv.findEssentialMat(np.array(train),
+                                     np.array(query),
+                                     intrinsic_matrix,
+                                     cv.RANSAC, 0.999, err)
+
+    return (E, filter_inliers(match, inliers.flatten()))
 
 
 def filter_inliers(match: dict, inliers: np.ndarray) -> dict:
