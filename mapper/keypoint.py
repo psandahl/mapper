@@ -1,22 +1,56 @@
 import cv2 as cv
+from cv2 import AKAZE
 import numpy as np
 
+from enum import Enum
 import math
 
 import mapper.image as im
 
-detector = cv.AgastFeatureDetector_create()
-extractor = cv.xfeatures2d.BriefDescriptorExtractor_create()
-matcher = cv.BFMatcher(cv.NORM_HAMMING)
+
+class KeypointType(Enum):
+    AGAST = 1
+    AKAZE = 2
+    ORB = 3
 
 
-def detect(image: cv.Mat, threshold=15) -> tuple:
+detector = None
+extractor = None
+matcher = None
+
+
+def configure_keypoint(keypoint_type: KeypointType, agast_threshold: int = 15, orb_features: int = 5000):
+    """
+    Configure keypoint detector/matcher.
+    """
+    global detector
+    global extractor
+    global matcher
+
+    matcher = cv.BFMatcher(cv.NORM_HAMMING)
+
+    if keypoint_type == KeypointType.AGAST:
+        detector = cv.AgastFeatureDetector_create()
+        extractor = cv.xfeatures2d.BriefDescriptorExtractor_create()
+
+        detector.setThreshold(agast_threshold)
+        detector.setNonmaxSuppression(False)
+    elif keypoint_type == KeypointType.AKAZE:
+        detector = cv.AKAZE_create()
+        extractor = detector
+    elif keypoint_type == KeypointType.ORB:
+        detector = cv.ORB_create(orb_features)
+        extractor = detector
+    else:
+        print('Error: configure_keypoint() cannot determine type')
+
+
+def detect(image: cv.Mat) -> tuple:
     """
     Detect keypoints in a gray scale image using AGAST.
 
     Parameters:
-        image: Image to detect keypoints in.
-        threshold: AGAST threshold (lower = more points).
+        image: Image to detect keypoints in.    
 
     Returns:
         Keypoints for the image.
@@ -24,8 +58,12 @@ def detect(image: cv.Mat, threshold=15) -> tuple:
     assert im.is_image(image), 'Argument is assumed to be an image'
     assert im.num_channels(image) == 1, 'Image is assumed to be gray scale'
 
-    detector.setThreshold(threshold)
-    detector.setNonmaxSuppression(False)
+    if detector is None:
+        configure_keypoint(KeypointType.AGAST)
+
+    assert not detector is None
+    assert not extractor is None
+    assert not matcher is None
 
     return detector.detect(image)
 
@@ -260,7 +298,7 @@ def E_refine(match: dict, intrinsic_matrix: cv.Mat, err: float = 0.075) -> tuple
 
 def filter_inliers(match: dict, inliers: np.ndarray) -> dict:
     """
-    Filtering a matching using inlier array.
+    Filtering a matching dictionary using inlier array.
     """
     kpt0 = list()
     desc0 = list()

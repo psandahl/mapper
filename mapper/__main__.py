@@ -7,11 +7,16 @@ import mapper.keypoint as kp
 
 
 def show_keypoints():
-    gray0 = im.scale_image(im.gray_convert(
-        im.read_image_bgr('c:/Users/patri/bilder/IMG_0141.jpeg')), 0.5)
-    gray1 = im.scale_image(im.gray_convert(
-        im.read_image_bgr('c:/Users/patri/bilder/IMG_0142.jpeg')), 0.5)
+    kp.configure_keypoint(kp.KeypointType.AGAST)
+    # kp.configure_keypoint(kp.KeypointType.AKAZE)
+    # kp.configure_keypoint(kp.KeypointType.ORB)
 
+    gray0 = im.scale_image(im.gray_convert(
+        im.read_image_bgr('c:/Users/patri/bilder/IMG_0145.jpeg')), 0.5)
+    gray1 = im.scale_image(im.gray_convert(
+        im.read_image_bgr('c:/Users/patri/bilder/IMG_0146.jpeg')), 0.5)
+
+    # Hack for iPhone images.
     intrinsic_matrix = mat.intrinsic_matrix_35mm_film(26, im.image_size(gray0))
 
     points0 = kp.SSC_refine(kp.detect(gray0), 5000, im.image_size(gray0))
@@ -23,7 +28,7 @@ def show_keypoints():
     first_match = kp.match(train, query)
     print(f"First match={len(first_match['train_keypoints'])}")
 
-    E, E_match = kp.E_refine(first_match, intrinsic_matrix, 0.1)
+    E, E_match = kp.E_refine(first_match, intrinsic_matrix)
     print(f"E match={len(E_match['train_keypoints'])}")
 
     keys0 = im.visualization_image(gray0)
