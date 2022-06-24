@@ -87,6 +87,9 @@ class UtilsTestCase(unittest.TestCase):
         self.assertAlmostEqual(0.2, utils.fov_from_focal_length(
             utils.focal_length_from_fov(0.2, media_size), media_size))
 
+    def test_aspect_ratio(self):
+        self.assertAlmostEqual(1024 / 768, utils.aspect_ratio((1024, 768)))
+
 
 class MatrixTestCase(unittest.TestCase):
     def test_to_and_from_ideal_intrinsic_matrix(self):

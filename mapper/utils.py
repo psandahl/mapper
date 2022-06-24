@@ -33,3 +33,18 @@ def focal_length_from_fov(fov: float, media_size: float) -> float:
     half_size = media_size / 2.0
 
     return half_size / math.tan(half_fov)
+
+
+def aspect_ratio(size: tuple) -> float:
+    """
+    Compute aspect ratio.
+
+    Parameters:
+        size: Tuple (width, height).
+
+    Returns:
+        The aspect ratio.
+    """
+    assert isinstance(size, tuple), 'Argument is assumed to be a tuple'
+    assert len(size) == 2, 'Argument is assumed to have two elements'
+    return size[0] / size[1]

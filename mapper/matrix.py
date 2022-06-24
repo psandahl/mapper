@@ -1,4 +1,5 @@
 import cv2 as cv
+from cv2 import HOUGH_GRADIENT
 import numpy as np
 
 import mapper.utils as utils
@@ -15,7 +16,6 @@ def ideal_intrinsic_matrix(fov: tuple, image_size: tuple) -> cv.Mat:
     Returns:
         A 3x3 intrinsic matrix.
     """
-
     assert isinstance(fov, tuple), "fov is assumed to be a tuple"
     assert len(fov) == 2, "fov shall have two elements"
     assert isinstance(image_size, tuple), "image_size is assumed to be a tuple"
@@ -45,7 +45,6 @@ def decomp_intrinsic_matrix(mat: cv.Mat) -> tuple:
     Returns:
         A nested tuple ((h_fov, vfov), (w, h)).
     """
-
     assert isinstance(mat, np.ndarray), 'Argument is assumed to be a matrix'
     assert mat.shape == (3, 3), 'Matrix is assumed to be 3x3'
 
@@ -56,3 +55,17 @@ def decomp_intrinsic_matrix(mat: cv.Mat) -> tuple:
     v_fov = utils.fov_from_focal_length(mat[1, 1], h)
 
     return ((h_fov, v_fov), (w, h))
+
+
+def intrinsic_matrix_35mm_film(focal_length: float, image_size: tuple) -> cv.Mat:
+    """
+    Helper function to compute an intrinsic matrix for a 35mm file (e.g. iphone Exif).
+    """
+    assert isinstance(image_size, tuple), 'Argument is assumed to be a tuple'
+    assert len(image_size) == 2, 'Argument is assumed to have two elements'
+
+    aspect_ratio = utils.aspect_ratio(image_size)
+    h_fov = utils.fov_from_focal_length(focal_length, 35)
+    v_fov = utils.fov_from_focal_length(focal_length, 35 / aspect_ratio)
+
+    return ideal_intrinsic_matrix((h_fov, v_fov), image_size)
