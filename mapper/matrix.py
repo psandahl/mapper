@@ -1,5 +1,4 @@
 import cv2 as cv
-from cv2 import HOUGH_GRADIENT
 import numpy as np
 
 import math
