@@ -2,6 +2,8 @@ import cv2 as cv
 from cv2 import HOUGH_GRADIENT
 import numpy as np
 
+import math
+
 import mapper.utils as utils
 
 
@@ -35,7 +37,7 @@ def ideal_intrinsic_matrix(fov: tuple, image_size: tuple) -> cv.Mat:
     return np.array(m).reshape(3, 3)
 
 
-def decomp_intrinsic_matrix(mat: cv.Mat) -> tuple:
+def decomp_intrinsic_matrix(mat: np.ndarray) -> tuple:
     """
     Decompose the intrinsic matrix.
 
@@ -69,3 +71,53 @@ def intrinsic_matrix_35mm_film(focal_length: float, image_size: tuple) -> cv.Mat
     v_fov = utils.fov_from_focal_length(focal_length, 35 / aspect_ratio)
 
     return ideal_intrinsic_matrix((h_fov, v_fov), image_size)
+
+
+def ypr_matrix_yxz(yaw: float, pitch: float, roll: float) -> np.ndarray:
+    """
+    Compute an Euler rotation matrix in order y, x and z. Suitable for OpenCV
+    camera frames.
+
+    Parameters:
+        yaw: Yaw angle in degrees.
+        pitch: Pitch angle in degrees.
+        roll: Roll angle in degrees.
+
+    Returns:
+        A 3x3 rotation matrix.
+    """
+    y = np.radians(yaw)
+    x = np.radians(pitch)
+    z = np.radians(roll)
+
+    cy = math.cos(y)
+    sy = math.sin(y)
+    cx = math.cos(x)
+    sx = math.sin(x)
+    cz = math.cos(z)
+    sz = math.sin(z)
+
+    mat = [cy * cz + sx * sy * sz, cz * sx * sy - cy * sz, cx * sy,
+           cx * sz, cx * cz, -sx,
+           -cx * sy + cy * sx * sz, cy * cz * sx + sy * sz, cx * cy
+           ]
+
+    return np.array(mat).reshape(3, 3)
+
+
+def decomp_ypr_matrix_yxz(mat: np.ndarray) -> tuple:
+    """
+    Decompose an Euler rotation matrix in order y, x, and z into
+    yaw, pitch and roll.
+
+    Parameters:
+        Tuple (yaw, pitch, roll) in degrees.
+    """
+    assert isinstance(mat, np.ndarray), 'Argument is assumed to be a matrix'
+    assert mat.shape == (3, 3), 'Matrix is assumed to be 3x3'
+
+    y = math.atan2(mat[0, 2], mat[2, 2])
+    x = math.asin(-mat[1, 2])
+    z = math.atan2(mat[1, 0], mat[1, 1])
+
+    return (math.degrees(y), math.degrees(x), math.degrees(z))

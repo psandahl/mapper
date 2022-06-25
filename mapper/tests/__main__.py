@@ -96,12 +96,24 @@ class MatrixTestCase(unittest.TestCase):
         fov = (30, 20)
         size = (1024, 768)
 
-        imat = mat.ideal_intrinsic_matrix(fov, size)
-        fov1, size1 = mat.decomp_intrinsic_matrix(imat)
+        m = mat.ideal_intrinsic_matrix(fov, size)
+        fov1, size1 = mat.decomp_intrinsic_matrix(m)
 
         self.assertAlmostEqual(fov[0], fov1[0])
         self.assertAlmostEqual(fov[1], fov1[1])
         self.assertTupleEqual(size, size1)
+
+    def test_to_and_from_ypr_matrix_yxz(self):
+        yaw = -23.6
+        pitch = 7.7
+        roll = 167.0
+
+        m = mat.ypr_matrix_yxz(yaw, pitch, roll)
+        yaw1, pitch1, roll1 = mat.decomp_ypr_matrix_yxz(m)
+
+        self.assertAlmostEqual(yaw, yaw1)
+        self.assertAlmostEqual(pitch, pitch1)
+        self.assertAlmostEqual(roll, roll1)
 
 
 def run_tests():
