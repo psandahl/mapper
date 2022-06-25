@@ -115,6 +115,18 @@ class MatrixTestCase(unittest.TestCase):
         self.assertAlmostEqual(pitch, pitch1)
         self.assertAlmostEqual(roll, roll1)
 
+    def test_to_and_from_ypr_matrix_zyx(self):
+        yaw = -23.6
+        pitch = 7.7
+        roll = 167.0
+
+        m = mat.ypr_matrix_zyx(yaw, pitch, roll)
+        yaw1, pitch1, roll1 = mat.decomp_ypr_matrix_zyx(m)
+
+        self.assertAlmostEqual(yaw, yaw1)
+        self.assertAlmostEqual(pitch, pitch1)
+        self.assertAlmostEqual(roll, roll1)
+
 
 def run_tests():
     unittest.main()

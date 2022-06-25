@@ -121,3 +121,50 @@ def decomp_ypr_matrix_yxz(mat: np.ndarray) -> tuple:
     z = math.atan2(mat[1, 0], mat[1, 1])
 
     return (math.degrees(y), math.degrees(x), math.degrees(z))
+
+
+def ypr_matrix_zyx(yaw: float, pitch: float, roll: float) -> np.ndarray:
+    """
+    Compute an Euler rotation matrix in order z, y and z. Suitable for ECEF
+    camera frames.
+
+    Parameters:
+        yaw: Yaw angle in degrees.
+        pitch: Pitch angle in degrees.
+        roll: Roll angle in degrees.
+
+    Returns:
+        A 3x3 rotation matrix.
+    """
+    z = math.radians(yaw)
+    y = math.radians(pitch)
+    x = math.radians(roll)
+
+    cz = math.cos(z)
+    sz = math.sin(z)
+    cy = math.cos(y)
+    sy = math.sin(y)
+    cx = math.cos(x)
+    sx = math.sin(x)
+
+    mat = [cy * cz, cz * sx * sy - cx * sz, cx * cz * sy + sx * sz,
+           cy * sz, cx * cz + sx * sy * sz, -cz * sx + cx * sy * sz,
+           -sy, cy * sx, cx * cy
+           ]
+
+    return np.array(mat).reshape(3, 3)
+
+
+def decomp_ypr_matrix_zyx(mat: np.ndarray) -> tuple:
+    """
+    Decompose an Euler rotation matrix in order z, y, and x into
+    yaw, pitch and roll.
+
+    Parameters:
+        Tuple (yaw, pitch, roll) in degrees.
+    """
+    z = math.atan2(mat[1, 0], mat[0, 0])
+    y = math.asin(-mat[2, 0])
+    x = math.atan2(mat[2, 1], mat[2, 2])
+
+    return (math.degrees(z), math.degrees(y), math.degrees(x))
