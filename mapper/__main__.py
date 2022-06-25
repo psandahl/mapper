@@ -4,6 +4,7 @@ import numpy as np
 import mapper.image as im
 import mapper.matrix as mat
 import mapper.keypoint as kp
+import mapper.tracking as trck
 
 
 def show_keypoints():
@@ -30,6 +31,13 @@ def show_keypoints():
 
     E, E_match = kp.E_refine(first_match, intrinsic_matrix)
     print(f"E match={len(E_match['train_keypoints'])}")
+
+    xyz, ypr = trck.relative_pose(cv.KeyPoint_convert(E_match['train_keypoints']),
+                                  cv.KeyPoint_convert(
+                                      E_match['query_keypoints']),
+                                  E, intrinsic_matrix)
+
+    print(f'Query relative to train. xyz={xyz}, ypr={ypr}')
 
     keys0 = im.visualization_image(gray0)
     keys1 = im.visualization_image(gray1)
