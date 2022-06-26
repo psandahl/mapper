@@ -211,8 +211,8 @@ def decomp_ypr_matrix_zyx(mat: np.ndarray) -> tuple:
 
 def ecef_to_camera_matrix() -> np.ndarray:
     """
-    Compute a matrix that transforms from ECEF frame to
-    OpenCV camera frame.
+    Compute a matrix that maps from ECEF frame to
+    a OpenCV camera frame (withing the ECEF frame).
 
     Returns:
         3x3 rotation matrix.

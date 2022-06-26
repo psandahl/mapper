@@ -157,13 +157,14 @@ class TransformTestCase(unittest.TestCase):
         ext = mat.extrinsic_matrix(R, t)
         assertEqualArray(self, t, tr.self_from_extrinsic_matrix(ext))
 
-        # With rotation in yxz.
+        # With rotation in camera space.
         R = mat.ypr_matrix_yxz(66, 25, -134.5)
         ext = mat.extrinsic_matrix(R, t)
         assertEqualArray(self, t, tr.self_from_extrinsic_matrix(ext))
 
-        # With rotation in yxz with change from ECEF to camera.
-        R = mat.ypr_matrix_zyx(66, 25, -134.5) @ mat.ecef_to_camera_matrix().T
+        # With rotation in ECEF.
+        R = tr.remap_frame(mat.ypr_matrix_zyx(66, 25, -134.5),
+                           mat.ecef_to_camera_matrix())
         ext = mat.extrinsic_matrix(R, t)
         assertEqualArray(self, t, tr.self_from_extrinsic_matrix(ext))
 
@@ -176,22 +177,24 @@ class TransformTestCase(unittest.TestCase):
         xyz_c = tr.world_to_camera(ext, np.array([1, 2, 3]))
         assertEqualArray(self, np.array([1, 2, 3]), xyz_c)
 
-        # A little rotation and translation.
+        # A little rotation and translation in camera space.
         R = mat.ypr_matrix_yxz(-90, 0, 0)  # CCW in this case.
         t = np.array([0, 0, -10])
         ext = mat.extrinsic_matrix(R, t)
         xyz_c = tr.world_to_camera(ext, np.array([-3, 2, -9]))
         assertEqualArray(self, np.array([1, 2, 3]), xyz_c)
 
-        # No rotation and no translation in ECEF.
-        R = mat.ypr_matrix_zyx(0, 0, 0) @ mat.ecef_to_camera_matrix().T
+        # No rotation and no translation, but in ECEF.
+        R = tr.remap_frame(mat.ypr_matrix_zyx(0, 0, 0),
+                           mat.ecef_to_camera_matrix())
         t = np.array([0, 0, 0])
         ext = mat.extrinsic_matrix(R, t)
         xyz_c = tr.world_to_camera(ext, np.array([-3, 1, -2]))
         assertEqualArray(self, np.array([1, 2, 3]), xyz_c)
 
-        # A little rotation and scaling in ECEF.
-        R = mat.ypr_matrix_zyx(90, 0, 0) @ mat.ecef_to_camera_matrix().T
+        # With rotation and translation in ECEF.
+        R = tr.remap_frame(mat.ypr_matrix_zyx(90, 0, 0),
+                           mat.ecef_to_camera_matrix())
         t = np.array([10, 0, 0])
         ext = mat.extrinsic_matrix(R, t)
         xyz_c = tr.world_to_camera(ext, np.array([9, -3, -2]))

@@ -3,6 +3,23 @@ import numpy as np
 import mapper.matrix as mat
 
 
+def remap_frame(R: np.ndarray, map: np.ndarray) -> np.ndarray:
+    """
+    Remap a rotation frame, e.g. ECEF, to be a camera frame within
+    ECEF. If no mapping shall be made, e.g. camera and world frames
+    have the same axes, map can be set to identity.
+
+    Parameters:
+        R: 3x3 rotation matrix.
+        map: 3x3 rotation matrix.
+    """
+    assert isinstance(R, np.ndarray), 'Argument is assumed to be a matrix'
+    assert R.shape == (3, 3), 'Matrix is assumed to be 3x3'
+    assert isinstance(map, np.ndarray), 'Argument is assumed to be a matrix'
+    assert map.shape == (3, 3), 'Matrix is assumed to be 3x3'
+    return R @ map.T
+
+
 def world_to_camera(ext: np.ndarray, xyz: np.ndarray) -> np.ndarray:
     """
     Transform a world coordinate to a camera coordinate.
