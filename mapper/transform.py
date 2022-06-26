@@ -23,6 +23,11 @@ def world_to_camera(ext: np.ndarray, xyz: np.ndarray) -> np.ndarray:
     return ext @ xyz_h
 
 
+def camera_to_world(ext: np.ndarray, xyz: np.ndarray) -> np.ndarray:
+    R, t = mat.decomp_extrinsic_matrix(ext)
+    return R.T @ xyz - R.T @ t
+
+
 def self_from_extrinsic_matrix(ext: np.ndarray) -> np.ndarray:
     """
     Get the self position in world space from an extrinsic matrix.
