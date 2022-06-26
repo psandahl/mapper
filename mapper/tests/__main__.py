@@ -127,6 +127,24 @@ class MatrixTestCase(unittest.TestCase):
         self.assertAlmostEqual(pitch, pitch1)
         self.assertAlmostEqual(roll, roll1)
 
+    def test_ecef_to_camera_matrix(self):
+        m = mat.ecef_to_camera_matrix()
+
+        axis0 = m @ np.array([1.0, 0.0, 0.0])
+        self.assertEqual(0.0, axis0[0])
+        self.assertEqual(0.0, axis0[1])
+        self.assertEqual(-1.0, axis0[2])
+
+        axis1 = m @ np.array([0.0, 1.0, 0.0])
+        self.assertEqual(1.0, axis1[0])
+        self.assertEqual(0.0, axis1[1])
+        self.assertEqual(0.0, axis1[2])
+
+        axis2 = m @ np.array([0.0, 0.0, 1.0])
+        self.assertEqual(0.0, axis2[0])
+        self.assertEqual(-1.0, axis2[1])
+        self.assertEqual(0.0, axis2[2])
+
 
 def run_tests():
     unittest.main()

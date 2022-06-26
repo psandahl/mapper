@@ -206,3 +206,18 @@ def decomp_ypr_matrix_zyx(mat: np.ndarray) -> tuple:
     x = math.atan2(mat[2, 1], mat[2, 2])
 
     return (math.degrees(z), math.degrees(y), math.degrees(x))
+
+
+def ecef_to_camera_matrix() -> np.ndarray:
+    """
+    Compute a matrix that transforms from ECEF frame to
+    OpenCV camera frame.
+
+    Returns:
+        3x3 rotation matrix.
+    """
+    mat = [0.0, 1.0, 0.0,
+           0.0, 0.0, -1.0,
+           -1.0, 0.0, 0.0]
+
+    return np.array(mat).reshape(3, 3)
