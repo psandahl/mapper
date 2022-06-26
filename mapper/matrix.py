@@ -72,6 +72,45 @@ def intrinsic_matrix_35mm_film(focal_length: float, image_size: tuple) -> cv.Mat
     return ideal_intrinsic_matrix((h_fov, v_fov), image_size)
 
 
+def extrinsic_matrix(R: np.ndarray, t: np.ndarray) -> np.ndarray:
+    """
+    Create an extrinsic matrix, transforming from world space
+    to camera space.
+
+    Parameters:
+        R: 3x3 rotation matrix.
+        t: camera position.
+
+    Returns:
+        3x4 matrix transforming to camera space.
+    """
+    assert isinstance(R, np.ndarray), 'R is assumed to be a matrix'
+    assert R.shape == (3, 3), 'R is assumed to be 3x3'
+    assert isinstance(t, np.ndarray), 't is assumed to be an array'
+    assert len(t) == 3, 't is assumed to have 3 elements'
+
+    return np.hstack((R.T, R.T @ -t.reshape(3, 1)))
+
+
+def decomp_extrinsic_matrix(mat: np.ndarray) -> tuple:
+    """
+    Decompose an extrinsic matrix into R, t.
+
+    Parameters:
+        mat: 3x4 extrinsic matrix.
+
+    Returns:
+        Tuple (R, t).
+    """
+    assert isinstance(mat, np.ndarray), 'Argument is assumed to be a matrix'
+    assert mat.shape == (3, 4), 'Matrix is assumed to be 3x4'
+
+    R = mat[:, :3].copy()
+    t = mat[:, 3].copy()
+
+    return (R, t)
+
+
 def ypr_matrix_yxz(yaw: float, pitch: float, roll: float) -> np.ndarray:
     """
     Compute an Euler rotation matrix in order y, x and z. Suitable for OpenCV
