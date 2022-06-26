@@ -94,7 +94,8 @@ def extrinsic_matrix(R: np.ndarray, t: np.ndarray) -> np.ndarray:
 
 def decomp_extrinsic_matrix(mat: np.ndarray) -> tuple:
     """
-    Decompose an extrinsic matrix into R, t.
+    Decompose an extrinsic matrix into R, t. Return new
+    copies of data (i.e. not sharing data with extrinsic matrix).
 
     Parameters:
         mat: 3x4 extrinsic matrix.
@@ -137,7 +138,7 @@ def ypr_matrix_yxz(yaw: float, pitch: float, roll: float) -> np.ndarray:
 
     mat = [cy * cz + sx * sy * sz, cz * sx * sy - cy * sz, cx * sy,
            cx * sz, cx * cz, -sx,
-           -cx * sy + cy * sx * sz, cy * cz * sx + sy * sz, cx * cy
+           -cz * sy + cy * sx * sz, cy * cz * sx + sy * sz, cx * cy
            ]
 
     return np.array(mat).reshape(3, 3)

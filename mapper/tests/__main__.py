@@ -6,7 +6,15 @@ import unittest
 import mapper.image as im
 import mapper.keypoint as kp
 import mapper.matrix as mat
+import mapper.transform as tr
 import mapper.utils as utils
+
+
+def assertEqualArray(fw: unittest.TestCase, arr0: np.ndarray,
+                     arr1: np.ndarray) -> None:
+    fw.assertEqual(len(arr0), len(arr1))
+    for i in range(0, len(arr0)):
+        fw.assertAlmostEqual(arr0[i], arr1[i])
 
 
 class KeypointTestCase(unittest.TestCase):
@@ -131,19 +139,33 @@ class MatrixTestCase(unittest.TestCase):
         m = mat.ecef_to_camera_matrix()
 
         axis0 = m @ np.array([1.0, 0.0, 0.0])
-        self.assertEqual(0.0, axis0[0])
-        self.assertEqual(0.0, axis0[1])
-        self.assertEqual(-1.0, axis0[2])
+        assertEqualArray(self, [0.0, 0.0, -1.0], axis0)
 
         axis1 = m @ np.array([0.0, 1.0, 0.0])
-        self.assertEqual(1.0, axis1[0])
-        self.assertEqual(0.0, axis1[1])
-        self.assertEqual(0.0, axis1[2])
+        assertEqualArray(self, [1.0, 0.0, 0.0], axis1)
 
         axis2 = m @ np.array([0.0, 0.0, 1.0])
-        self.assertEqual(0.0, axis2[0])
-        self.assertEqual(-1.0, axis2[1])
-        self.assertEqual(0.0, axis2[2])
+        assertEqualArray(self, [0.0, -1.0, 0.0], axis2)
+
+
+class TransformTestCase(unittest.TestCase):
+    def test_self_from_extrinsic_matrix(self):
+        R = mat.ypr_matrix_yxz(0, 0, 0)
+        t = np.array([1234, -444, 5566])
+
+        # Simplest case, no rotation.
+        ext = mat.extrinsic_matrix(R, t)
+        assertEqualArray(self, t, tr.self_from_extrinsic_matrix(ext))
+
+        # With rotation in yxz.
+        R = mat.ypr_matrix_yxz(66, 25, -134.5)
+        ext = mat.extrinsic_matrix(R, t)
+        assertEqualArray(self, t, tr.self_from_extrinsic_matrix(ext))
+
+        # With rotation in yxz with change from ECEF to camera.
+        R = mat.ecef_to_camera_matrix() @ mat.ypr_matrix_zyx(66, 25, -134.5)
+        ext = mat.extrinsic_matrix(R, t)
+        assertEqualArray(self, t, tr.self_from_extrinsic_matrix(ext))
 
 
 def run_tests():
