@@ -163,9 +163,39 @@ class TransformTestCase(unittest.TestCase):
         assertEqualArray(self, t, tr.self_from_extrinsic_matrix(ext))
 
         # With rotation in yxz with change from ECEF to camera.
-        R = mat.ecef_to_camera_matrix() @ mat.ypr_matrix_zyx(66, 25, -134.5)
+        R = mat.ypr_matrix_zyx(66, 25, -134.5) @ mat.ecef_to_camera_matrix().T
         ext = mat.extrinsic_matrix(R, t)
         assertEqualArray(self, t, tr.self_from_extrinsic_matrix(ext))
+
+    def test_world_to_camera(self):
+        R = mat.ypr_matrix_yxz(0, 0, 0)
+        t = np.array([0, 0, 0])
+
+        # Simple case, no rotation and no translate.
+        ext = mat.extrinsic_matrix(R, t)
+        xyz_c = tr.world_to_camera(ext, np.array([1, 2, 3]))
+        assertEqualArray(self, np.array([1, 2, 3]), xyz_c)
+
+        # A little rotation and translation.
+        R = mat.ypr_matrix_yxz(-90, 0, 0)  # CCW in this case.
+        t = np.array([0, 0, -10])
+        ext = mat.extrinsic_matrix(R, t)
+        xyz_c = tr.world_to_camera(ext, np.array([-3, 2, -9]))
+        assertEqualArray(self, np.array([1, 2, 3]), xyz_c)
+
+        # No rotation and no translation in ECEF.
+        R = mat.ypr_matrix_zyx(0, 0, 0) @ mat.ecef_to_camera_matrix().T
+        t = np.array([0, 0, 0])
+        ext = mat.extrinsic_matrix(R, t)
+        xyz_c = tr.world_to_camera(ext, np.array([-3, 1, -2]))
+        assertEqualArray(self, np.array([1, 2, 3]), xyz_c)
+
+        # A little rotation and scaling in ECEF.
+        R = mat.ypr_matrix_zyx(90, 0, 0) @ mat.ecef_to_camera_matrix().T
+        t = np.array([10, 0, 0])
+        ext = mat.extrinsic_matrix(R, t)
+        xyz_c = tr.world_to_camera(ext, np.array([9, -3, -2]))
+        assertEqualArray(self, np.array([1, 2, 3]), xyz_c)
 
 
 def run_tests():
