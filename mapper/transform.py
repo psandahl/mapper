@@ -1,3 +1,4 @@
+import cv2 as cv
 import numpy as np
 
 import mapper.matrix as mat
@@ -20,9 +21,9 @@ def remap_frame(R: np.ndarray, map: np.ndarray) -> np.ndarray:
     return R @ map.T
 
 
-def world_to_camera(ext: np.ndarray, xyz: np.ndarray) -> np.ndarray:
+def world_to_camera_mat(ext: np.ndarray, xyz: np.ndarray) -> np.ndarray:
     """
-    Transform a world coordinate to a camera coordinate.
+    Transform a world coordinate to a camera coordinate using an extrinsic matrix.
 
     Parameters:
         ext: The extrinsic matrix.
@@ -40,6 +41,30 @@ def world_to_camera(ext: np.ndarray, xyz: np.ndarray) -> np.ndarray:
     return ext @ xyz_h
 
 
-def camera_to_world(ext: np.ndarray, xyz: np.ndarray) -> np.ndarray:
+def camera_to_world_mat(ext: np.ndarray, xyz: np.ndarray) -> np.ndarray:
     R, t = mat.decomp_extrinsic_matrix(ext)
     return R.T @ xyz - R.T @ t
+
+
+def world_to_camera_rtvec(rvec: np.ndarray, tvec: np.ndarray, xyz: np.ndarray) -> np.ndarray:
+    """
+    Transform a world coordinate to a camera coordinate using rvec and tvec.
+
+    Parameters:
+        rvec: Rotation vector.
+        tvec: Translation vector.        
+        xyz: The world coordinate.
+
+    Returns:
+        The camera coordinate.
+    """
+    assert isinstance(rvec, np.ndarray), 'Argument is assumed to be an array'
+    assert len(rvec) == 3, 'rvec is assumed to of length 3'
+    assert isinstance(tvec, np.ndarray), 'Argument is assumed to be an array'
+    assert len(tvec) == 3, 'tvec is assumed to of length 3'
+    assert isinstance(xyz, np.ndarray), 'Argument is assumed to be an array'
+    assert len(xyz) == 3, 'Array is assumed to be of length 3'
+
+    R, jac = cv.Rodrigues(rvec)
+
+    return R @ xyz + tvec

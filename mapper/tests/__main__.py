@@ -182,57 +182,74 @@ class MatrixTestCase(unittest.TestCase):
         assertEqualArray(self, [0.0, -1.0, 0.0], axis2)
 
 
-# class TransformTestCase(unittest.TestCase):
-#     def test_self_from_extrinsic_matrix(self):
-#         R = mat.ypr_matrix_yxz(0, 0, 0)
-#         t = np.array([1234, -444, 5566])
+class TransformTestCase(unittest.TestCase):
+    def test_world_to_camera_mat(self):
+        goal = np.array([1, 2, 3])  # Always hit camspace pos.
 
-#         # Simplest case, no rotation.
-#         ext = mat.extrinsic_matrix(R, t)
-#         assertEqualArray(self, t, tr.self_from_extrinsic_matrix(ext))
+        R = mat.ypr_matrix_yxz(0, 0, 0)
+        t = np.array([0, 0, 0])
 
-#         # With rotation in camera space.
-#         R = mat.ypr_matrix_yxz(66, 25, -134.5)
-#         ext = mat.extrinsic_matrix(R, t)
-#         assertEqualArray(self, t, tr.self_from_extrinsic_matrix(ext))
+        # Simple case, no rotation and no translate.
+        ext = mat.extrinsic_matrix(R, t)
+        xyz_c = tr.world_to_camera_mat(ext, np.array([1, 2, 3]))
+        assertEqualArray(self, goal, xyz_c)
 
-#         # With rotation in ECEF.
-#         R = tr.remap_frame(mat.ypr_matrix_zyx(66, 25, -134.5),
-#                            mat.ecef_to_camera_matrix())
-#         ext = mat.extrinsic_matrix(R, t)
-#         assertEqualArray(self, t, tr.self_from_extrinsic_matrix(ext))
+        # Rotation and translation in camera space.
+        R = mat.ypr_matrix_yxz(-90, 0, 0)  # CCW in this case.
+        t = np.array([0, 0, -10])
+        ext = mat.extrinsic_matrix(R, t)
+        xyz_c = tr.world_to_camera_mat(ext, np.array([-3, 2, -9]))
+        assertEqualArray(self, goal, xyz_c)
 
-#     def test_world_to_camera(self):
-#         R = mat.ypr_matrix_yxz(0, 0, 0)
-#         t = np.array([0, 0, 0])
+        # No rotation and no translation, but in ECEF.
+        R = tr.remap_frame(mat.ypr_matrix_zyx(0, 0, 0),
+                           mat.ecef_to_camera_matrix())
+        t = np.array([0, 0, 0])
+        ext = mat.extrinsic_matrix(R, t)
+        xyz_c = tr.world_to_camera_mat(ext, np.array([-3, 1, -2]))
+        assertEqualArray(self, goal, xyz_c)
 
-#         # Simple case, no rotation and no translate.
-#         ext = mat.extrinsic_matrix(R, t)
-#         xyz_c = tr.world_to_camera(ext, np.array([1, 2, 3]))
-#         assertEqualArray(self, np.array([1, 2, 3]), xyz_c)
+        # With rotation and translation in ECEF.
+        R = tr.remap_frame(mat.ypr_matrix_zyx(90, 0, 0),  # Also CCW.
+                           mat.ecef_to_camera_matrix())
+        t = np.array([10, 0, 0])
+        ext = mat.extrinsic_matrix(R, t)
+        xyz_c = tr.world_to_camera_mat(ext, np.array([9, -3, -2]))
+        assertEqualArray(self, goal, xyz_c)
 
-#         # A little rotation and translation in camera space.
-#         R = mat.ypr_matrix_yxz(-90, 0, 0)  # CCW in this case.
-#         t = np.array([0, 0, -10])
-#         ext = mat.extrinsic_matrix(R, t)
-#         xyz_c = tr.world_to_camera(ext, np.array([-3, 2, -9]))
-#         assertEqualArray(self, np.array([1, 2, 3]), xyz_c)
+    def test_world_to_camera_rtvec(self):
+        goal = np.array([1, 2, 3])  # Always hit camspace pos.
 
-#         # No rotation and no translation, but in ECEF.
-#         R = tr.remap_frame(mat.ypr_matrix_zyx(0, 0, 0),
-#                            mat.ecef_to_camera_matrix())
-#         t = np.array([0, 0, 0])
-#         ext = mat.extrinsic_matrix(R, t)
-#         xyz_c = tr.world_to_camera(ext, np.array([-3, 1, -2]))
-#         assertEqualArray(self, np.array([1, 2, 3]), xyz_c)
+        R = mat.ypr_matrix_yxz(0, 0, 0)
+        t = np.array([0, 0, 0])
 
-#         # With rotation and translation in ECEF.
-#         R = tr.remap_frame(mat.ypr_matrix_zyx(90, 0, 0),
-#                            mat.ecef_to_camera_matrix())
-#         t = np.array([10, 0, 0])
-#         ext = mat.extrinsic_matrix(R, t)
-#         xyz_c = tr.world_to_camera(ext, np.array([9, -3, -2]))
-#         assertEqualArray(self, np.array([1, 2, 3]), xyz_c)
+        # Simple case, no rotation and no translate.
+        rvec, tvec = mat.extrinsic_rtvec(R, t)
+        xyz_c = tr.world_to_camera_rtvec(rvec, tvec, np.array([1, 2, 3]))
+        assertEqualArray(self, goal, xyz_c)
+
+        # Rotation and translation in camera space.
+        R = mat.ypr_matrix_yxz(-90, 0, 0)  # CCW in this case.
+        t = np.array([0, 0, -10])
+        rvec, tvec = mat.extrinsic_rtvec(R, t)
+        xyz_c = tr.world_to_camera_rtvec(rvec, tvec, np.array([-3, 2, -9]))
+        assertEqualArray(self, goal, xyz_c)
+
+        # No rotation and no translation, but in ECEF.
+        R = tr.remap_frame(mat.ypr_matrix_zyx(0, 0, 0),
+                           mat.ecef_to_camera_matrix())
+        t = np.array([0, 0, 0])
+        rvec, tvec = mat.extrinsic_rtvec(R, t)
+        xyz_c = tr.world_to_camera_rtvec(rvec, tvec, np.array([-3, 1, -2]))
+        assertEqualArray(self, goal, xyz_c)
+
+        # With rotation and translation in ECEF.
+        R = tr.remap_frame(mat.ypr_matrix_zyx(90, 0, 0),  # Also CCW.
+                           mat.ecef_to_camera_matrix())
+        t = np.array([10, 0, 0])
+        rvec, tvec = mat.extrinsic_rtvec(R, t)
+        xyz_c = tr.world_to_camera_rtvec(rvec, tvec, np.array([9, -3, -2]))
+        assertEqualArray(self, goal, xyz_c)
 
 
 def run_tests():
