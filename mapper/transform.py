@@ -42,8 +42,25 @@ def world_to_camera_mat(ext: np.ndarray, xyz: np.ndarray) -> np.ndarray:
 
 
 def camera_to_world_mat(ext: np.ndarray, xyz: np.ndarray) -> np.ndarray:
+    """
+    Transform a camera coordinate to a world coordinate using an extrinsic matrix.
+
+    Parameters:
+        ext: The extrinsic matrix.
+        xyz: The camera coordinate.
+
+    Returns:
+        The world coordinate.
+    """
+    assert isinstance(ext, np.ndarray), 'Argument is assumed to be a matrix'
+    assert ext.shape == (3, 4), 'Matrix is assumed to be 3x4'
+    assert isinstance(xyz, np.ndarray), 'Argument is assumed to be an array'
+    assert len(xyz) == 3, 'Array is assumed to be of length 3'
+
+    # Decomp gives camera to world from start.
     R, t = mat.decomp_extrinsic_matrix(ext)
-    return R.T @ xyz - R.T @ t
+
+    return R @ xyz + t
 
 
 def world_to_camera_rtvec(rvec: np.ndarray, tvec: np.ndarray, xyz: np.ndarray) -> np.ndarray:
@@ -68,3 +85,21 @@ def world_to_camera_rtvec(rvec: np.ndarray, tvec: np.ndarray, xyz: np.ndarray) -
     R, jac = cv.Rodrigues(rvec)
 
     return R @ xyz + tvec
+
+
+def camera_to_world_rtvec(rvec: np.ndarray, tvec: np.ndarray, xyz: np.ndarray) -> np.ndarray:
+    """
+    Transform a camera coordinate to a world coordinate using rvec and tvec.
+
+    Parameters:
+        rvec: Rotation vector.
+        tvec: Translation vector.        
+        xyz: The camera coordinate.
+
+    Returns:
+        The world coordinate.
+    """
+    R, jac = cv.Rodrigues(rvec)
+
+    # rtvec always go from world to camera - so invert!
+    return R.T @ xyz + R.T @ -tvec
