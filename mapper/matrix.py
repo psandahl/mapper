@@ -78,7 +78,7 @@ def extrinsic_matrix(R: np.ndarray, t: np.ndarray) -> np.ndarray:
     to camera space.
 
     Parameters:
-        R: 3x3 rotation matrix.
+        R: 3x3 rotation matrix - describing the cameras rotation.
         t: camera position.
 
     Returns:
@@ -101,7 +101,7 @@ def decomp_extrinsic_matrix(mat: np.ndarray) -> tuple:
         mat: 3x4 extrinsic matrix.
 
     Returns:
-        Tuple (R, t).
+        Tuple (R, t), similar to arguments for extrinsic data.
     """
     assert isinstance(mat, np.ndarray), 'Argument is assumed to be a matrix'
     assert mat.shape == (3, 4), 'Matrix is assumed to be 3x4'
@@ -109,7 +109,46 @@ def decomp_extrinsic_matrix(mat: np.ndarray) -> tuple:
     R = mat[:, :3].copy()
     t = mat[:, 3].copy()
 
-    return (R, t)
+    return (R.T, R.T @ -t)
+
+
+def extrinsic_rtvec(R: np.ndarray, t: np.ndarray) -> tuple:
+    """
+    Create rvec, tvec as extrinsic data, transforming from world space
+    to camera space.
+
+    Parameters:
+        R: 3x3 rotation matrix - describing the cameras rotation.
+        t: camera position.
+
+    Returns:
+        Tuple (rvec, tvec).
+    """
+    rvec, jac = cv.Rodrigues(R.T)
+    tvec = R.T @ -t
+
+    return (rvec, tvec)
+
+
+def decomp_extrinsic_rtvec(rvec: np.ndarray, tvec: np.ndarray) -> tuple:
+    """
+    Decompose extrinsic rvec, tvec into R, t.
+
+    Parameters:
+        rvec: Rotation vector.
+        tvec: Translation vector.        
+
+    Returns:
+        Tuple (R, t), similar to arguments for extrinsic data.
+    """
+    assert isinstance(rvec, np.ndarray), 'Argument is assumed to be an array'
+    assert len(rvec) == 3, 'rvec is assumed to of length 3'
+    assert isinstance(tvec, np.ndarray), 'Argument is assumed to be an array'
+    assert len(tvec) == 3, 'tvec is assumed to of length 3'
+
+    R, jac = cv.Rodrigues(rvec)
+
+    return (R.T, R.T @ -tvec)
 
 
 def ypr_matrix_yxz(yaw: float, pitch: float, roll: float) -> np.ndarray:

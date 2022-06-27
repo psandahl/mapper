@@ -43,20 +43,3 @@ def world_to_camera(ext: np.ndarray, xyz: np.ndarray) -> np.ndarray:
 def camera_to_world(ext: np.ndarray, xyz: np.ndarray) -> np.ndarray:
     R, t = mat.decomp_extrinsic_matrix(ext)
     return R.T @ xyz - R.T @ t
-
-
-def self_from_extrinsic_matrix(ext: np.ndarray) -> np.ndarray:
-    """
-    Get the self position in world space from an extrinsic matrix.
-
-    Parameters:
-        ext: The extrinsic matrix.
-
-    Returns:
-        The world translation/position.
-    """
-    assert isinstance(ext, np.ndarray), 'Argument is assumed to be a matrix'
-    assert ext.shape == (3, 4), 'Matrix is assumed to be 3x4'
-
-    R, t = mat.decomp_extrinsic_matrix(ext)
-    return R.T @ -t
