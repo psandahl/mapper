@@ -1,10 +1,24 @@
 import cv2 as cv
 import numpy as np
 
+import mapper.util.kittidata as kd
+
 import mapper.vision.image as im
 import mapper.vision.matrix as mat
 import mapper.vision.keypoint as kp
 import mapper.vision.tracking as trck
+
+
+def show_kitti_demo():
+    cv.namedWindow('viz')
+
+    test_dir = 'C:/Users/patri/repos/VisualSLAM/KITTI_sequence_1'
+    for gray, calib, gt_pose in kd.KittiData(test_dir):
+        cv.imshow('viz', gray)
+
+        cv.waitKey(0)
+
+    cv.destroyAllWindows()
 
 
 def show_keypoints():
@@ -69,7 +83,8 @@ def show_keypoints():
 
 
 def main():
-    show_keypoints()
+    show_kitti_demo()
+    # show_keypoints()
 
 
 if __name__ == '__main__':
