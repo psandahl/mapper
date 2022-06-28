@@ -59,7 +59,7 @@ def decomp_intrinsic_matrix(mat: np.ndarray) -> tuple:
 
 
 def pose_matrix(R: np.ndarray, t: np.ndarray) -> np.ndarray:
-    return np.hstack((R, t))
+    return np.hstack((R, t.reshape(3, 1)))
 
 
 def decomp_pose_matrix(mat: np.ndarray) -> tuple:

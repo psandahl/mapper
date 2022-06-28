@@ -51,12 +51,14 @@ def configure_keypoint(keypoint_type: KeypointType, agast_threshold: int = 15, o
         print('Error: configure_keypoint() cannot determine type')
 
 
-def detect(image: cv.Mat) -> tuple:
+def detect(image: cv.Mat, num_ret_points: int = 1500) -> list:
     """
-    Detect keypoints in a gray scale image using AGAST.
+    Detect keypoints in a gray scale image using the configured detector. Will
+    be refined using SSC.
 
     Parameters:
-        image: Image to detect keypoints in.    
+        image: Image to detect keypoints in.
+        num_ret_points: The number of wanted points to return (approx).
 
     Returns:
         Keypoints for the image.
@@ -71,7 +73,7 @@ def detect(image: cv.Mat) -> tuple:
     assert not extractor is None
     assert not matcher is None
 
-    return detector.detect(image)
+    return SSC_refine(detector.detect(image), num_ret_points, im.image_size(image))
 
 
 def SSC_refine(keypoints: tuple, num_ret_points: int, image_size: tuple, tolerance: float = 0.1) -> list:
