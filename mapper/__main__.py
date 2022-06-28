@@ -13,9 +13,9 @@ def show_keypoints():
     # kp.configure_keypoint(kp.KeypointType.ORB)
 
     gray0 = im.scale_image(im.gray_convert(
-        im.read_image_bgr('C:/Users/patsa/Pictures/seq6/roll0.jpeg')), 0.5)
+        im.read_image_bgr('C:/Users/patri/bilder/yaw0.jpeg')), 0.5)
     gray1 = im.scale_image(im.gray_convert(
-        im.read_image_bgr('C:/Users/patsa/Pictures/seq6/roll1.jpeg')), 0.5)
+        im.read_image_bgr('C:/Users/patri/bilder/yaw1.jpeg')), 0.5)
 
     # Hack for iPhone images.
     intrinsic_matrix = mat.intrinsic_matrix_35mm_film(26, im.image_size(gray0))

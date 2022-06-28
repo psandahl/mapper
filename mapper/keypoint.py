@@ -27,7 +27,13 @@ def configure_keypoint(keypoint_type: KeypointType, agast_threshold: int = 15, o
     global extractor
     global matcher
 
-    matcher = cv.BFMatcher(cv.NORM_HAMMING)
+    #matcher = cv.BFMatcher(cv.NORM_HAMMING)
+    FLANN_INDEX_LSH = 6
+    index_params = dict(algorithm=FLANN_INDEX_LSH,
+                        table_number=6, key_size=12, multi_probe_level=1)
+    search_params = dict(checks=50)
+    matcher = cv.FlannBasedMatcher(indexParams=index_params,
+                                   searchParams=search_params)
 
     if keypoint_type == KeypointType.AGAST:
         detector = cv.AgastFeatureDetector_create()
