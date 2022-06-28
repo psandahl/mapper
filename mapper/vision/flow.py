@@ -1,7 +1,7 @@
 import cv2 as cv
 import numpy as np
 
-import mapper.image as im
+import mapper.vision.image as im
 
 
 def dense_optical_flow(image0: cv.Mat, image1: cv.Mat) -> cv.Mat:

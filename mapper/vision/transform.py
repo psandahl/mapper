@@ -1,7 +1,7 @@
 import cv2 as cv
 import numpy as np
 
-import mapper.matrix as mat
+import mapper.vision.matrix as mat
 
 
 def remap_frame(R: np.ndarray, map: np.ndarray) -> np.ndarray:

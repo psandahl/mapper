@@ -3,7 +3,7 @@ import numpy as np
 
 import math
 
-import mapper.utils as utils
+import mapper.vision.utils as utils
 
 
 def ideal_intrinsic_matrix(fov: tuple, image_size: tuple) -> cv.Mat:

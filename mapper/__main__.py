@@ -1,10 +1,10 @@
 import cv2 as cv
 import numpy as np
 
-import mapper.image as im
-import mapper.matrix as mat
-import mapper.keypoint as kp
-import mapper.tracking as trck
+import mapper.vision.image as im
+import mapper.vision.matrix as mat
+import mapper.vision.keypoint as kp
+import mapper.vision.tracking as trck
 
 
 def show_keypoints():

@@ -1,7 +1,7 @@
 import numpy as np
 import cv2 as cv
 
-import mapper.matrix as mat
+import mapper.vision.matrix as mat
 
 
 def relative_pose(train: np.ndarray, query: np.ndarray, E: np.ndarray,

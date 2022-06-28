@@ -3,11 +3,11 @@ import numpy as np
 
 import unittest
 
-import mapper.image as im
-import mapper.keypoint as kp
-import mapper.matrix as mat
-import mapper.transform as tr
-import mapper.utils as utils
+import mapper.vision.image as im
+import mapper.vision.keypoint as kp
+import mapper.vision.matrix as mat
+import mapper.vision.transform as tr
+import mapper.vision.utils as utils
 
 
 def assertEqualArray(fw: unittest.TestCase, arr0: np.ndarray,

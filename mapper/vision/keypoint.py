@@ -5,7 +5,7 @@ import numpy as np
 from enum import Enum
 import math
 
-import mapper.image as im
+import mapper.vision.image as im
 
 
 class KeypointType(Enum):
