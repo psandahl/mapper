@@ -26,10 +26,10 @@ def show_kitti_demo():
     gt_poses = list()
     poses = list()
 
-    test_dir = 'C:/Users/patri/repos/VisualSLAM/KITTI_sequence_1'
+    test_dir = 'C:/Users/patri/repos/VisualSLAM/KITTI_sequence_2'
     for gray, proj_matrix, gt_pose in kd.KittiData(test_dir):
         instrinsic_matrix, _ = mat.decomp_pose_matrix(proj_matrix)
-        points = kp.detect(gray, 1500)
+        points = kp.detect(gray, 650)
         query = kp.compute(gray, points)
 
         viz = im.visualization_image(gray)
