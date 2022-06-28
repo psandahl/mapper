@@ -191,7 +191,7 @@ def SSC_refine(keypoints: tuple, num_ret_points: int, image_size: tuple, toleran
     return selected_keypoints
 
 
-def compute(image: cv.Mat, keypoints: any) -> tuple:
+def compute(image: cv.Mat, keypoints: list) -> tuple:
     """
     Compute descriptors for a set of keypoints.
 
@@ -252,28 +252,6 @@ def match(train: tuple, query: tuple) -> dict:
     match['query_descriptors'] = desc11
 
     return match
-
-
-def H_refine(match: dict, err: float = 1.0) -> dict:
-    """
-    Refine a match using homography constraint.
-
-    Parameters:
-        match: The input matching.
-        err: The max error for solving for H.
-
-    Returns:
-        Tuple with (H, H inlier match).
-    """
-    assert isinstance(match, dict), 'match is suppsed to be a dictionary'
-
-    train = cv.KeyPoint_convert(match['train_keypoints'])
-    query = cv.KeyPoint_convert(match['query_keypoints'])
-
-    H, inliers = cv.findHomography(
-        np.array(train), np.array(query), cv.RANSAC, err)
-
-    return (H, filter_inliers(match, inliers.flatten()))
 
 
 def E_refine(match: dict, intrinsic_matrix: cv.Mat, err: float = 0.075) -> tuple:

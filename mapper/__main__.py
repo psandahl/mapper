@@ -9,21 +9,28 @@ import mapper.vision.keypoint as kp
 import mapper.vision.tracking as trck
 
 
+def last_in(xs: list) -> any:
+    return xs[len(xs) - 1]
+
+
 def show_kitti_demo():
-    kp.configure_keypoint(kp.KeypointType.AGAST)
+    kp.configure_keypoint(kp.KeypointType.AKAZE)
 
     cv.namedWindow('viz')
+    cv.namedWindow('match')
 
     frame_nr = 0
     images = list()
     intrinsic_matrices = list()
+    kpt_pairs = list()
     gt_poses = list()
     poses = list()
 
-    test_dir = 'C:/Users/patri/repos/VisualSLAM/KITTI_sequence_2'
+    test_dir = 'C:/Users/patri/repos/VisualSLAM/KITTI_sequence_1'
     for gray, proj_matrix, gt_pose in kd.KittiData(test_dir):
         instrinsic_matrix, _ = mat.decomp_pose_matrix(proj_matrix)
         points = kp.detect(gray, 1500)
+        query = kp.compute(gray, points)
 
         viz = im.visualization_image(gray)
         im.draw_features(viz, cv.KeyPoint_convert(points))
@@ -32,7 +39,38 @@ def show_kitti_demo():
         cv.imshow('viz', viz)
 
         if len(images) > 0:
-            ()
+            # Do stuff.
+            prev_image = im.visualization_image(last_in(images))
+            prev_pose = last_in(poses)
+            train = last_in(kpt_pairs)
+
+            match = kp.match(train, query)
+            rel_pose, pose_match = trck.visual_pose_prediction(
+                match, instrinsic_matrix)
+
+            prev_pose_hom = mat.homogeneous_matrix(prev_pose)
+            rel_pose_hom = mat.homogeneous_matrix(rel_pose)
+
+            pose_hom = prev_pose_hom @ np.linalg.inv(rel_pose_hom)
+            pose = mat.decomp_homogeneous_matrix(pose_hom)
+
+            poses.append(pose)
+
+            R, t = mat.decomp_pose_matrix(pose)
+            R_gt, t_gt = mat.decomp_pose_matrix(gt_pose)
+            ypr = mat.decomp_ypr_matrix_yxz(R)
+            ypr_gt = mat.decomp_ypr_matrix_yxz(R_gt)
+
+            print(f'Position={t}, GT position={t_gt}')
+            print(f'YPR={ypr}, GT YPR={ypr_gt}')
+
+            match_img = im.draw_matching_features(prev_image,
+                                                  cv.KeyPoint_convert(
+                                                      pose_match['train_keypoints']),
+                                                  viz,
+                                                  cv.KeyPoint_convert(pose_match['query_keypoints']))
+
+            cv.imshow('match', match_img)
         else:
             # Start at zero.
             poses.append(mat.pose_matrix(
@@ -41,9 +79,10 @@ def show_kitti_demo():
         frame_nr += 1
         images.append(gray)
         intrinsic_matrices.append(instrinsic_matrix)
+        kpt_pairs.append(query)
         gt_poses.append(gt_pose)
 
-        key = cv.waitKey(33)
+        key = cv.waitKey(0)
         if key == 27:
             break
 

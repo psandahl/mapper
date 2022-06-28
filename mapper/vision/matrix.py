@@ -66,6 +66,14 @@ def decomp_pose_matrix(mat: np.ndarray) -> tuple:
     return (mat[:, :3].copy(), mat[:, 3].copy())
 
 
+def homogeneous_matrix(mat: np.ndarray) -> np.ndarray:
+    return np.vstack((mat, np.array([0.0, 0.0, 0.0, 1.0])))
+
+
+def decomp_homogeneous_matrix(mat: np.ndarray) -> np.ndarray:
+    return mat[:3, :4].copy()
+
+
 def intrinsic_matrix_35mm_film(focal_length: float, image_size: tuple) -> cv.Mat:
     """
     Helper function to compute an intrinsic matrix for a 35mm file (e.g. iphone Exif).
