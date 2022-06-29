@@ -99,7 +99,36 @@ def camera_to_world_rtvec(rvec: np.ndarray, tvec: np.ndarray, xyz: np.ndarray) -
     Returns:
         The world coordinate.
     """
+    assert isinstance(rvec, np.ndarray), 'Argument is assumed to be an array'
+    assert len(xyz) == 3, 'Array is assumed to be of length 3'
+    assert isinstance(tvec, np.ndarray), 'Argument is assumed to be an array'
+    assert len(tvec) == 3, 'Array is assumed to be of length 3'
+    assert isinstance(xyz, np.ndarray), 'Argument is assumed to be an array'
+    assert len(xyz) == 3, 'Array is assumed to be of length 3'
+
     R, jac = cv.Rodrigues(rvec)
 
     # rtvec always go from world to camera - so invert!
     return R.T @ xyz + R.T @ -tvec
+
+
+def change_pose(pose: np.ndarray, delta: np.ndarray) -> np.ndarray:
+    """
+    Change the pose/base by applying the delta to the pose.
+
+    Parameters:
+        pose: The pose to change.
+        delta: The pose to apply.
+
+    Returns:
+        The new pose.
+    """
+    assert isinstance(pose, np.ndarray), 'Argument is assumed to be a matrix'
+    assert pose.shape == (3, 4), 'Matrix is assumed to be 3x4'
+    assert isinstance(delta, np.ndarray), 'Argument is assumed to be a matrix'
+    assert delta.shape == (3, 4), 'Matrix is assumed to be 3x4'
+
+    new_pose = mat.homogeneous_matrix(
+        pose) @ np.linalg.inv(mat.homogeneous_matrix(delta))
+
+    return mat.decomp_homogeneous_matrix(new_pose)

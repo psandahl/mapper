@@ -59,18 +59,84 @@ def decomp_intrinsic_matrix(mat: np.ndarray) -> tuple:
 
 
 def pose_matrix(R: np.ndarray, t: np.ndarray) -> np.ndarray:
+    """
+    Create a pose matrix, holding the rotation and translation for something.
+
+    Parameters:
+        R: The rotation.
+        t: The translation.
+
+    Returns:
+        A 3x4 pose matrix.
+    """
+    assert isinstance(R, np.ndarray), 'R is assumed to be a matrix'
+    assert R.shape == (3, 3), 'R is assumed to be 3x3'
+    assert isinstance(t, np.ndarray), 't is assumed to be an array'
+    assert len(t) == 3, 't is assumed to have 3 elements'
+
     return np.hstack((R, t.reshape(3, 1)))
 
 
 def decomp_pose_matrix(mat: np.ndarray) -> tuple:
+    """
+    Decompose a pose matrix into its R and t components.
+
+    Parameters:
+        mat: A 3x4 pose matrix.
+
+    Returns:
+        A tuple (R, t)
+    """
+    assert isinstance(mat, np.ndarray), 'Argument is assumed to be a matrix'
+    assert mat.shape == (3, 4), 'Matrix is assumed to be 3x4'
+
     return (mat[:, :3].copy(), mat[:, 3].copy())
 
 
+def decomp_pose_matrix_yprt_yxz(mat: np.ndarray) -> tuple:
+    """
+    Decompose a pose matrix into its ypr and t components.
+
+    Parameters:
+        mat: A 3x4 pose matrix.
+
+    Returns:
+        A tuple ((y, p, r), t).
+    """
+    R, t = decomp_pose_matrix(mat)
+
+    return (decomp_ypr_matrix_yxz(R), t)
+
+
 def homogeneous_matrix(mat: np.ndarray) -> np.ndarray:
+    """
+    Create a homogeneous 4x4 matrix from a 3x4 matrix.
+
+    Parameters:
+        mat: A 3x4 matrix.
+
+    Returns:
+        A 4x4 homogeneous matrix.
+    """
+    assert isinstance(mat, np.ndarray), 'Argument is assumed to be a matrix'
+    assert mat.shape == (3, 4), 'Matrix is assumed to be 3x4'
+
     return np.vstack((mat, np.array([0.0, 0.0, 0.0, 1.0])))
 
 
 def decomp_homogeneous_matrix(mat: np.ndarray) -> np.ndarray:
+    """
+    Decompose a homogeneous 4x4 matrix into a 3x4 matrix.
+
+    Parameters:
+        mat: 4x4 matrix.
+
+    Returns:
+        A 3x4 matrix.
+    """
+    assert isinstance(mat, np.ndarray), 'Argument is assumed to be a matrix'
+    assert mat.shape == (4, 4), 'Matrix is assumed to be 4x4'
+
     return mat[:3, :4].copy()
 
 
