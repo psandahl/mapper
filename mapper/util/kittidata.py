@@ -2,7 +2,7 @@ import cv2 as cv
 
 import os
 
-import mapper.util.external as ext
+import mapper.util.misc as misc
 
 
 class KittiData:
@@ -16,9 +16,9 @@ class KittiData:
 
         self.image_paths = [os.path.join(image_dir, file)
                             for file in sorted(os.listdir(image_dir))]
-        self.calib = ext.read_3x4_matrices(
+        self.calib = misc.read_3x4_matrices(
             os.path.join(directory, 'calib.txt'))
-        self.poses = ext.read_3x4_matrices(
+        self.poses = misc.read_3x4_matrices(
             os.path.join(directory, 'poses.txt'))
 
         self.num_data = 0

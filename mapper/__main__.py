@@ -2,16 +2,13 @@ import cv2 as cv
 import numpy as np
 
 import mapper.util.kittidata as kd
+import mapper.util.misc as misc
 
 import mapper.vision.image as im
 import mapper.vision.matrix as mat
 import mapper.vision.keypoint as kp
 import mapper.vision.tracking as trk
 import mapper.vision.transform as trf
-
-
-def last_in(xs: list) -> any:
-    return xs[len(xs) - 1]
 
 
 def print_pose_comparision(label: str, yprt: tuple, yprt_gt: tuple) -> None:
@@ -59,9 +56,9 @@ def tracking(test_dir: str) -> None:
 
         if frame_nr > 0:
             # Do stuff.
-            prev_image = im.visualization_image(last_in(images))
-            prev_pose = last_in(poses)
-            prev_descriptor_pair = last_in(descriptor_pairs)
+            prev_image = im.visualization_image(misc.last_in(images))
+            prev_pose = misc.last_in(poses)
+            prev_descriptor_pair = misc.last_in(descriptor_pairs)
 
             match = kp.match(prev_descriptor_pair, frame_descriptor_pair)
             rel_pose, pose_match = trk.visual_pose_prediction(
