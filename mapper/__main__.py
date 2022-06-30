@@ -3,6 +3,7 @@ import numpy as np
 
 import mapper.util.kittidata as kd
 import mapper.util.misc as misc
+from mapper.util.panel import Panel
 
 import mapper.vision.image as im
 import mapper.vision.matrix as mat
@@ -29,8 +30,8 @@ def print_pose_comparision(label: str, yprt: tuple, yprt_gt: tuple) -> None:
 def tracking(test_dir: str) -> None:
     kp.configure_keypoint(kp.KeypointType.AKAZE)
 
-    cv.namedWindow('viz')
-    cv.namedWindow('match')
+    panel = Panel()
+
     images = list()
     intrinsic_matrices = list()
     descriptor_pairs = list()
@@ -38,21 +39,15 @@ def tracking(test_dir: str) -> None:
     poses = list()
 
     # Iterate through dataset.
-    for gray, proj_matrix, gt_pose in kd.KittiData(test_dir):
+    for image, proj_matrix, gt_pose in kd.KittiData(test_dir):
         frame_nr = len(images)
 
         # Unpack the intrinsic matrix.
         instrinsic_matrix, _ = mat.decomp_pose_matrix(proj_matrix)
 
         # Compute keypoints and descriptors.
-        frame_keypoints = kp.detect(gray, 650)
-        frame_descriptor_pair = kp.compute(gray, frame_keypoints)
-
-        viz = im.visualization_image(gray)
-        im.draw_features(viz, cv.KeyPoint_convert(frame_keypoints))
-
-        cv.setWindowTitle('viz', f'Frame #{frame_nr}')
-        cv.imshow('viz', viz)
+        frame_keypoints = kp.detect(image, 650)
+        frame_descriptor_pair = kp.compute(image, frame_keypoints)
 
         if frame_nr > 0:
             # Do stuff.
@@ -67,36 +62,40 @@ def tracking(test_dir: str) -> None:
             pose = trf.change_pose(prev_pose, rel_pose)
             poses.append(pose)
 
-            match_img = im.draw_matching_features(prev_image,
-                                                  cv.KeyPoint_convert(
-                                                      pose_match['train_keypoints']),
-                                                  viz,
-                                                  cv.KeyPoint_convert(pose_match['query_keypoints']))
-
-            cv.imshow('match', match_img)
-
             print_pose_comparision(f'frame={frame_nr}',
                                    mat.decomp_pose_matrix_yprt_yxz(pose),
                                    mat.decomp_pose_matrix_yprt_yxz(gt_pose))
+
+            panel.set_caption(f'frame={frame_nr}')
+            panel.set_pose_prediction_pair(prev_image,
+                                           cv.KeyPoint_convert(
+                                               prev_descriptor_pair[0]),
+                                           cv.KeyPoint_convert(
+                                               pose_match['train_keypoints']),
+                                           image,
+                                           cv.KeyPoint_convert(
+                                               frame_descriptor_pair[0]),
+                                           cv.KeyPoint_convert(pose_match['query_keypoints']))
+            panel.update()
+
+            key = cv.waitKey(0)
+            if key == 27:
+                break
         else:
             # This is the first frame. Use the ground truth pose.
             poses.append(gt_pose)
 
         # Save stuff.
-        images.append(gray)
+        images.append(image)
         intrinsic_matrices.append(instrinsic_matrix)
         descriptor_pairs.append(frame_descriptor_pair)
         gt_poses.append(gt_pose)
 
-        key = cv.waitKey(0)
-        if key == 27:
-            break
-
-    cv.destroyAllWindows()
+    panel.destroy_window()
 
 
 def main():
-    tracking('C:/Users/patri/repos/VisualSLAM/KITTI_sequence_1')
+    tracking('C:/Users/patri/repos/VisualSLAM/KITTI_sequence_2')
 
 
 if __name__ == '__main__':
