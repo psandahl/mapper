@@ -65,12 +65,14 @@ def read_3x4_matrices(filename: str) -> list():
     """
     matrices = list()
     with open(filename, 'r') as f:
+        line_nr = 0
         for line in f.readlines():
+            line_nr += 1
             array = np.fromstring(line, dtype=np.float64, sep=' ')
             if len(array) == 12:
                 matrices.append(array.reshape(3, 4))
             else:
                 print(
-                    f'Warning: Line did not contain 12 values in file={filename}')
+                    f'Warning: Line did not contain 12 values in file={filename}:{line_nr}')
 
     return matrices
