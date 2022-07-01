@@ -95,7 +95,9 @@ def tracking(test_dir: str) -> None:
 
 
 def main():
-    tracking('C:/Users/patri/repos/VisualSLAM/KITTI_sequence_2')
+    # tracking('C:\\Users\\patri\\kitti\\KITTI_sequence_1')
+    # tracking('C:\\Users\\patri\\kitti\\KITTI_sequence_2')
+    tracking('C:\\Users\\patri\\kitti\\KITTI_sequence_long_1')
 
 
 if __name__ == '__main__':
