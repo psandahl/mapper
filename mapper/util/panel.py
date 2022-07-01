@@ -9,12 +9,18 @@ import mapper.vision.image as im
 class Panel():
     def __init__(self):
         self.pose_matches_win = 'pose_matches'
+        self.track_win = 'track'
 
-        self.pose_matches_image = None
-        cv.namedWindow('pose_matches')
+        self.pose_matches_image = None  # Created after first set.
+        self.track_image = np.zeros((768, 1024, 3), dtype=np.uint8)
+        self.track_image[:, :, :] = 127
+
+        cv.namedWindow(self.pose_matches_win)
+        cv.namedWindow(self.track_win)
 
     def set_caption(self, caption: str) -> None:
         cv.setWindowTitle(self.pose_matches_win, f'pos matches: {caption}')
+        cv.setWindowTitle(self.track_win, f'track: {caption}')
 
     def set_pose_matches(self,
                          train_image: np.ndarray,
@@ -53,5 +59,8 @@ class Panel():
         if not self.pose_matches_image is None:
             cv.imshow(self.pose_matches_win, self.pose_matches_image)
 
+        cv.imshow(self.track_win, self.track_image)
+
     def destroy_window(self) -> None:
         cv.destroyWindow(self.pose_matches_win)
+        cv.destroyWindow(self.track_win)
