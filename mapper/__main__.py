@@ -67,15 +67,15 @@ def tracking(test_dir: str) -> None:
                                    mat.decomp_pose_matrix_yprt_yxz(gt_pose))
 
             panel.set_caption(f'frame={frame_nr}')
-            panel.set_pose_prediction_pair(prev_image,
-                                           cv.KeyPoint_convert(
-                                               prev_descriptor_pair[0]),
-                                           cv.KeyPoint_convert(
-                                               pose_match['train_keypoints']),
-                                           image,
-                                           cv.KeyPoint_convert(
-                                               frame_descriptor_pair[0]),
-                                           cv.KeyPoint_convert(pose_match['query_keypoints']))
+            panel.set_pose_matches(prev_image,
+                                   cv.KeyPoint_convert(
+                                       prev_descriptor_pair[0]),
+                                   cv.KeyPoint_convert(
+                                       pose_match['train_keypoints']),
+                                   image,
+                                   cv.KeyPoint_convert(
+                                       frame_descriptor_pair[0]),
+                                   cv.KeyPoint_convert(pose_match['query_keypoints']))
             panel.update()
 
             key = cv.waitKey(0)
