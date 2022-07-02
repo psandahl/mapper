@@ -233,6 +233,29 @@ def decomp_extrinsic_rtvec(rvec: np.ndarray, tvec: np.ndarray) -> tuple:
     return (R.T, R.T @ -tvec)
 
 
+def look_at_yxz(eye: np.ndarray, at: np.ndarray, down: np.ndarray) -> tuple:
+    """
+    Create a rotation matrix and t vector from look at vectorts. Suitable
+    for OpenCV camera frames.
+    """
+    assert isinstance(eye, np.ndarray), 'Argument is assumed to be an array'
+    assert len(eye) == 3, 'eye is assumed to of length 3'
+    assert isinstance(at, np.ndarray), 'Argument is assumed to be an array'
+    assert len(at) == 3, 'at is assumed to of length 3'
+    assert isinstance(down, np.ndarray), 'Argument is assumed to be an array'
+    assert len(down) == 3, 'eye is assumed to of length 3'
+
+    z = at - eye
+    z /= np.linalg.norm(z)
+
+    down /= np.linalg.norm(down)
+
+    x = np.cross(down, z)
+    y = np.cross(z, x)
+
+    return (np.hstack((x.reshape(3, 1), y.reshape(3, 1), z.reshape(3, 1))), at)
+
+
 def ypr_matrix_yxz(yaw: float, pitch: float, roll: float) -> np.ndarray:
     """
     Compute an Euler rotation matrix in order y, x and z. Suitable for OpenCV

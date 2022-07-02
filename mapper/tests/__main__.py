@@ -181,6 +181,20 @@ class MatrixTestCase(unittest.TestCase):
         axis2 = m @ np.array([0.0, 0.0, 1.0])
         assertEqualArray(self, [0.0, -1.0, 0.0], axis2)
 
+    def test_look_at_yxz(self):
+        eye = np.array([0.0, 0.0, 0.0])
+        at = np.array([0.0, 0.0, 1.0])
+        down = np.array([0.0, 1.0, 0.0])
+
+        R, t = mat.look_at_yxz(eye, at, down)
+        assertEqualArray(self, [0, 0, 0], mat.decomp_ypr_matrix_yxz(R))
+        assertEqualArray(self, at, t)
+
+        at = np.array([0.0, 1.0, 1.0])
+        R, t = mat.look_at_yxz(eye, at, down)
+        assertEqualArray(self, [0, -45, 0], mat.decomp_ypr_matrix_yxz(R))
+        assertEqualArray(self, at, t)
+
 
 class TransformTestCase(unittest.TestCase):
     def test_world_to_camera_mat(self):
