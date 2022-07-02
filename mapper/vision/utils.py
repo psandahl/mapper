@@ -35,6 +35,23 @@ def focal_length_from_fov(fov: float, media_size: float) -> float:
     return half_size / math.tan(half_fov)
 
 
+def matching_fov(fov: float, aspect_ratio: float) -> float:
+    """
+    Given a field of view and an aspect ratio, give back the matching
+    field of view for the 'other' side.
+
+    Parameters:
+        fov: Field of view in degrees.
+
+    Returns:
+        The other field of view in degrees.
+    """
+    half_side = math.tan(math.radians(fov / 2.0))
+    half_side *= aspect_ratio
+
+    return math.degrees(math.atan2(half_side, 1.0) * 2.0)
+
+
 def aspect_ratio(size: tuple) -> float:
     """
     Compute aspect ratio.

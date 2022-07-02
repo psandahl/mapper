@@ -251,9 +251,11 @@ def look_at_yxz(eye: np.ndarray, at: np.ndarray, down: np.ndarray) -> tuple:
     down /= np.linalg.norm(down)
 
     x = np.cross(down, z)
+    x /= np.linalg.norm(x)
     y = np.cross(z, x)
+    y /= np.linalg.norm(y)
 
-    return (np.hstack((x.reshape(3, 1), y.reshape(3, 1), z.reshape(3, 1))), at)
+    return (np.hstack((x.reshape(3, 1), y.reshape(3, 1), z.reshape(3, 1))), eye)
 
 
 def ypr_matrix_yxz(yaw: float, pitch: float, roll: float) -> np.ndarray:

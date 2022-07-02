@@ -4,16 +4,56 @@ import numpy as np
 import random
 
 import mapper.vision.image as im
+import mapper.vision.matrix as mat
+import mapper.vision.transform as trf
+import mapper.vision.utils as utils
 
 
 class Panel():
-    def __init__(self):
+    def __init__(self, data_extent: tuple):
+        min, max, mid = data_extent
+
         self.pose_matches_win = 'pose_matches'
         self.track_win = 'track'
 
-        self.pose_matches_image = None  # Created after first set.
-        self.track_image = np.zeros((768, 1024, 3), dtype=np.uint8)
+        # The pose matches image is initially not created. Will be
+        # created at first set.
+        self.pose_matches_image = None
+
+        # Create the track image. It will incrementally be filled with
+        # content.
+        track_image_width = 1024
+        track_image_height = 768
+
+        self.track_image = np.zeros(
+            (track_image_height, track_image_width, 3), dtype=np.uint8)
         self.track_image[:, :, :] = 127
+
+        # Setup camera for the track view.
+        h_fov = 60
+        v_fov = utils.matching_fov(h_fov,
+                                   1 / utils.aspect_ratio((track_image_width,
+                                                           track_image_height)))
+        self.track_image_intrinsic_matrix = mat.ideal_intrinsic_matrix(
+            (h_fov, v_fov), (track_image_width, track_image_height))
+
+        # Place camera at min_z, max_x, looking at mid.
+        min_x, min_z = min
+        max_x, max_z = max
+        mid_x, mid_z = mid
+
+        eye = np.array([max_x, -50.0, min_z])
+        at = np.array([mid_x, 0.0, mid_z])
+        down = np.array([0.0, 1.0, 0.0])
+
+        R, t = mat.look_at_yxz(eye, at, down)
+        rvec, tvec = mat.extrinsic_rtvec(R, t)
+
+        self.track_image_rvec = rvec
+        self.track_image_tvec = tvec
+
+        # Draw lines to mark the data extent.
+        self.draw_track_extent(data_extent)
 
         cv.namedWindow(self.pose_matches_win)
         cv.namedWindow(self.track_win)
@@ -55,7 +95,7 @@ class Panel():
         self.pose_matches_image = np.hstack(
             (train_image_vis, query_image_vis))
 
-    def update(self):
+    def update(self) -> None:
         if not self.pose_matches_image is None:
             cv.imshow(self.pose_matches_win, self.pose_matches_image)
 
@@ -64,3 +104,25 @@ class Panel():
     def destroy_window(self) -> None:
         cv.destroyWindow(self.pose_matches_win)
         cv.destroyWindow(self.track_win)
+
+    def draw_track_extent(self, data_extent: tuple) -> None:
+        min, max, _ = data_extent
+        min_x, min_z = min
+        max_x, max_z = max
+
+        c00 = np.array([min_x, 0.0, min_z])
+        c01 = np.array([min_x, 0.0, max_z])
+        c11 = np.array([max_x, 0.0, max_z])
+        c10 = np.array([max_x, 0.0, min_z])
+
+        corners, _ = cv.projectPoints(np.array([c00, c01, c11, c10]),
+                                      self.track_image_rvec,
+                                      self.track_image_tvec,
+                                      self.track_image_intrinsic_matrix,
+                                      None)
+
+        corners = [im.to_cv_point(corner.flatten()) for corner in corners]
+        cv.line(self.pose_matches_image,
+                corners[0], corners[1], color=(0, 255, 0))
+        cv.line(self.pose_matches_image,
+                corners[1], corners[2], color=(0, 255, 0))

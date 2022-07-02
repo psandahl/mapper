@@ -1,6 +1,8 @@
 import cv2 as cv
 import numpy as np
 
+import os
+
 import mapper.util.kittidata as kd
 import mapper.util.misc as misc
 from mapper.util.panel import Panel
@@ -27,10 +29,13 @@ def print_pose_comparision(label: str, yprt: tuple, yprt_gt: tuple) -> None:
     print(f'  GT y={ypr_gt[0]:+.2f} p={ypr_gt[1]:+.2f} r={ypr_gt[2]:+.2f}')
 
 
-def tracking(test_dir: str) -> None:
+def tracking(data_dir: str) -> None:
     kp.configure_keypoint(kp.KeypointType.AKAZE)
 
-    panel = Panel()
+    data_extent = misc.read_2d_box_from_3x4_matrices(
+        os.path.join(data_dir, 'poses.txt'))
+
+    panel = Panel(data_extent)
 
     images = list()
     intrinsic_matrices = list()
@@ -39,7 +44,7 @@ def tracking(test_dir: str) -> None:
     poses = list()
 
     # Iterate through dataset.
-    for image, proj_matrix, gt_pose in kd.KittiData(test_dir):
+    for image, proj_matrix, gt_pose in kd.KittiData(data_dir):
         frame_nr = len(images)
 
         # Unpack the intrinsic matrix.

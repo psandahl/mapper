@@ -98,6 +98,16 @@ class UtilsTestCase(unittest.TestCase):
     def test_aspect_ratio(self):
         self.assertAlmostEqual(1024 / 768, utils.aspect_ratio((1024, 768)))
 
+    def test_matching_fov(self):
+        self.assertEqual(20.0, utils.matching_fov(20, 1.0))
+        # 20 > result.
+        self.assertGreater(20.0, utils.matching_fov(20.0, 1 / 1.33))
+        # 20 < result.
+        self.assertLess(20.0, utils.matching_fov(20.0, 1.33))
+
+        v_fov = utils.matching_fov(20.0, 1 / 1.33)
+        self.assertEqual(20.0, utils.matching_fov(v_fov, 1.33))
+
 
 class MatrixTestCase(unittest.TestCase):
     def test_to_and_from_ideal_intrinsic_matrix(self):
@@ -188,12 +198,12 @@ class MatrixTestCase(unittest.TestCase):
 
         R, t = mat.look_at_yxz(eye, at, down)
         assertEqualArray(self, [0, 0, 0], mat.decomp_ypr_matrix_yxz(R))
-        assertEqualArray(self, at, t)
+        assertEqualArray(self, eye, t)
 
         at = np.array([0.0, 1.0, 1.0])
         R, t = mat.look_at_yxz(eye, at, down)
         assertEqualArray(self, [0, -45, 0], mat.decomp_ypr_matrix_yxz(R))
-        assertEqualArray(self, at, t)
+        assertEqualArray(self, eye, t)
 
 
 class TransformTestCase(unittest.TestCase):
