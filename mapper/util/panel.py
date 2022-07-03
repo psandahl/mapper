@@ -1,6 +1,7 @@
 import cv2 as cv
 import numpy as np
 
+import math
 import random
 
 import mapper.vision.image as im
@@ -131,7 +132,7 @@ class Panel():
         cv.line(self.track_image,
                 corners[3], corners[0], color=(0, 255, 0))
 
-    def draw_camera(self, pose_matrix: np.ndarray) -> None:
+    def add_axis(self, pose_matrix: np.ndarray) -> None:
         R, t = mat.decomp_pose_matrix(pose_matrix)
 
         center_c = np.array([0.0, 0.0, 0.0])
@@ -154,3 +155,37 @@ class Panel():
                 points[0], points[2], color=(0, 255, 0))
         cv.line(self.track_image,
                 points[0], points[3], color=(255, 0, 0))
+
+    def add_camera(self, pose_matrix: np.ndarray, color: tuple = (0, 255, 0)) -> None:
+        R, t = mat.decomp_pose_matrix(pose_matrix)
+
+        # Five points describing the frustum shape in camera space.
+        half_size = math.tan(math.radians(40) / 2.0)
+        points = [
+            np.array([0.0, 0.0, 0.0]),
+            np.array([-half_size, half_size, 1.0]),
+            np.array([-half_size, -half_size, 1.0]),
+            np.array([half_size, -half_size, 1.0]),
+            np.array([half_size, half_size, 1.0])
+        ]
+
+        # To world space.
+        points = [R @ point + t for point in points]
+
+        # To image space.
+        points, _ = cv.projectPoints(np.array(points),
+                                     self.track_image_rvec,
+                                     self.track_image_tvec,
+                                     self.track_image_intrinsic_matrix,
+                                     None)
+        points = [im.to_cv_point(point.flatten()) for point in points]
+
+        cv.line(self.track_image, points[0], points[1], color)
+        cv.line(self.track_image, points[0], points[2], color)
+        cv.line(self.track_image, points[0], points[3], color)
+        cv.line(self.track_image, points[0], points[4], color)
+
+        cv.line(self.track_image, points[1], points[2], color)
+        cv.line(self.track_image, points[2], points[3], color)
+        cv.line(self.track_image, points[3], points[4], color)
+        cv.line(self.track_image, points[4], points[1], color)

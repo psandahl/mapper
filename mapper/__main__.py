@@ -82,7 +82,8 @@ def tracking(data_dir: str) -> None:
                                        frame_descriptor_pair[0]),
                                    cv.KeyPoint_convert(pose_match['query_keypoints']))
 
-            panel.draw_camera(gt_pose)
+            panel.add_camera(gt_pose)
+            panel.add_camera(pose, color=(255, 0, 0))
             panel.update()
 
             key = cv.waitKey(30)
@@ -103,8 +104,8 @@ def tracking(data_dir: str) -> None:
 
 def main():
     # tracking('C:\\Users\\patri\\kitti\\KITTI_sequence_1')
-    tracking('C:\\Users\\patri\\kitti\\KITTI_sequence_2')
-    # tracking('C:\\Users\\patri\\kitti\\KITTI_sequence_long_1')
+    # tracking('C:\\Users\\patri\\kitti\\KITTI_sequence_2')
+    tracking('C:\\Users\\patri\\kitti\\KITTI_sequence_long_1')
 
 
 if __name__ == '__main__':
