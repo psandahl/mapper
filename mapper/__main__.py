@@ -81,9 +81,11 @@ def tracking(data_dir: str) -> None:
                                    cv.KeyPoint_convert(
                                        frame_descriptor_pair[0]),
                                    cv.KeyPoint_convert(pose_match['query_keypoints']))
+
+            panel.draw_camera(gt_pose)
             panel.update()
 
-            key = cv.waitKey(0)
+            key = cv.waitKey(30)
             if key == 27:
                 break
         else:
@@ -101,8 +103,8 @@ def tracking(data_dir: str) -> None:
 
 def main():
     # tracking('C:\\Users\\patri\\kitti\\KITTI_sequence_1')
-    # tracking('C:\\Users\\patri\\kitti\\KITTI_sequence_2')
-    tracking('C:\\Users\\patri\\kitti\\KITTI_sequence_long_1')
+    tracking('C:\\Users\\patri\\kitti\\KITTI_sequence_2')
+    # tracking('C:\\Users\\patri\\kitti\\KITTI_sequence_long_1')
 
 
 if __name__ == '__main__':

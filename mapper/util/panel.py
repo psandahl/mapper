@@ -130,3 +130,27 @@ class Panel():
                 corners[2], corners[3], color=(0, 255, 0))
         cv.line(self.track_image,
                 corners[3], corners[0], color=(0, 255, 0))
+
+    def draw_camera(self, pose_matrix: np.ndarray) -> None:
+        R, t = mat.decomp_pose_matrix(pose_matrix)
+
+        center_c = np.array([0.0, 0.0, 0.0])
+        front_c = np.array([0.0, 0.0, 1.0])
+        right_c = np.array([1.0, 0.0, 0.0])
+        down_c = np.array([0.0, 1.0, 0.0])
+        points_c = [center_c, front_c, right_c, down_c]
+
+        points_w = [R @ point + t for point in points_c]
+
+        points, _ = cv.projectPoints(np.array(points_w),
+                                     self.track_image_rvec,
+                                     self.track_image_tvec,
+                                     self.track_image_intrinsic_matrix,
+                                     None)
+        points = [im.to_cv_point(point.flatten()) for point in points]
+        cv.line(self.track_image,
+                points[0], points[1], color=(0, 0, 255))
+        cv.line(self.track_image,
+                points[0], points[2], color=(0, 255, 0))
+        cv.line(self.track_image,
+                points[0], points[3], color=(255, 0, 0))
