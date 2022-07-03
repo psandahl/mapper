@@ -42,7 +42,7 @@ class Panel():
         max_x, max_z = max
         mid_x, mid_z = mid
 
-        eye = np.array([max_x, -50.0, min_z])
+        eye = np.array([max_x * 2, -100.0, min_z * 2])
         at = np.array([mid_x, 0.0, mid_z])
         down = np.array([0.0, 1.0, 0.0])
 
@@ -122,7 +122,11 @@ class Panel():
                                       None)
 
         corners = [im.to_cv_point(corner.flatten()) for corner in corners]
-        cv.line(self.pose_matches_image,
+        cv.line(self.track_image,
                 corners[0], corners[1], color=(0, 255, 0))
-        cv.line(self.pose_matches_image,
+        cv.line(self.track_image,
                 corners[1], corners[2], color=(0, 255, 0))
+        cv.line(self.track_image,
+                corners[2], corners[3], color=(0, 255, 0))
+        cv.line(self.track_image,
+                corners[3], corners[0], color=(0, 255, 0))
