@@ -29,6 +29,8 @@ class KittiData:
         else:
             print(
                 f'Warning: Failed to properly read test data from={directory}')
+            print(
+                f' Num calib={len(self.calib)} poses={len(self.poses)} images={len(self.image_paths)}')
 
     def __iter__(self):
         """
