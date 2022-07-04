@@ -132,3 +132,27 @@ def change_pose(pose: np.ndarray, delta: np.ndarray) -> np.ndarray:
         pose) @ np.linalg.inv(mat.homogeneous_matrix(delta))
 
     return mat.decomp_homogeneous_matrix(new_pose)
+
+
+def project_point(projection_mat: np.ndarray, xyz: np.ndarray) -> np.ndarray:
+    """
+    Project a world coordinate to image.
+
+    Parameters:
+        projection_mat: A 3x4 projection matrix.
+        xyz: The world point.
+
+    Returns:
+        An image point.
+    """
+    assert isinstance(
+        projection_mat, np.ndarray), 'Argument is assumed to be a matrix'
+    assert projection_mat.shape == (3, 4), 'Matrix is assumed to be 3x4'
+    assert isinstance(xyz, np.ndarray), 'Argument is assumed to be an array'
+    assert len(xyz) == 3, 'Array is assumed to be of length 3'
+
+    xyz_h = np.append(xyz, 1.0)
+    px = projection_mat @ xyz_h
+    px /= px[2]
+
+    return px[:2]

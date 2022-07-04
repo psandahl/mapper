@@ -1,4 +1,5 @@
 import unittest
+import cv2 as cv
 import numpy as np
 
 import unittest
@@ -294,6 +295,29 @@ class TransformTestCase(unittest.TestCase):
         assertEqualArray(self, goal, xyz_c)
         assertEqualArray(self, xyz_w,
                          tr.camera_to_world_rtvec(rvec, tvec, goal))
+
+    def test_project_point(self):
+        R = mat.ypr_matrix_yxz(-90, 0, 0)
+        t = np.array([0.0, 0.0, -10.0])
+
+        extrinsic = mat.extrinsic_matrix(R, t)
+        rvec, tvec = mat.extrinsic_rtvec(R, t)
+
+        intrinsic = mat.ideal_intrinsic_matrix((30, 20), (1024, 768))
+        proj_mat = mat.projection_matrix(intrinsic, extrinsic)
+
+        # Shall be equal result between project_point and cv version.
+        xyz = np.array([-100.0, 0.0, -10.0])
+
+        px = tr.project_point(proj_mat, xyz)
+        px_cv, _ = cv.projectPoints(xyz, rvec, tvec, intrinsic, None)
+        assertEqualArray(self, px_cv.flatten(), px)
+
+        xyz = np.array([-100.0, 8.0, -17.0])
+
+        px = tr.project_point(proj_mat, xyz)
+        px_cv, _ = cv.projectPoints(xyz, rvec, tvec, intrinsic, None)
+        assertEqualArray(self, px_cv.flatten(), px)
 
 
 def run_tests():

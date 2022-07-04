@@ -58,6 +58,30 @@ def decomp_intrinsic_matrix(mat: np.ndarray) -> tuple:
     return ((h_fov, v_fov), (w, h))
 
 
+def projection_matrix(intrinsic_mat: np.ndarray,
+                      extrinsic_mat: np.ndarray) -> np.ndarray:
+    """
+    Create a projection matrix from instrinsic and extrinsic matrices.
+
+    Parameters:
+        intrinsic_mat: A 3x3 intrinsic matrix.
+        extrinsic_mat: A 3x4 extrinsic matrix.
+
+    Retrurns:
+        A 3x4 projection matrix.
+    """
+    assert isinstance(intrinsic_mat,
+                      np.ndarray), 'intrinsic_matrix is assumed to be a matrix'
+    assert intrinsic_mat.shape == (
+        3, 3), 'instrinsic_matrix is assumed to be 3x3'
+    assert isinstance(extrinsic_mat,
+                      np.ndarray), 'extrinsic_matrix is assumed to be a matrix'
+    assert extrinsic_mat.shape == (
+        3, 4), 'instrinsic_matrix is assumed to be 3x4'
+
+    return intrinsic_mat @ extrinsic_mat
+
+
 def pose_matrix(R: np.ndarray, t: np.ndarray) -> np.ndarray:
     """
     Create a pose matrix, holding the rotation and translation for something.
