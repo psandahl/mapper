@@ -28,7 +28,7 @@ def visual_pose_prediction(match: dict, intrinsic_matrix: np.ndarray, scale: flo
     E, inliers = cv.findEssentialMat(np.array(train),
                                      np.array(query),
                                      intrinsic_matrix,
-                                     cv.RANSAC, 0.999, 0.075)
+                                     cv.RANSAC, 0.999, 0.1)
     inliers = inliers.flatten()
 
     kpt0 = list()

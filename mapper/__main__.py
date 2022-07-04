@@ -2,6 +2,7 @@ import cv2 as cv
 import numpy as np
 
 import os
+import sys
 
 import mapper.util.kittidata as kd
 import mapper.util.misc as misc
@@ -68,7 +69,7 @@ def tracking(data_dir: str) -> None:
             rel_pose, pose_match = trk.visual_pose_prediction(
                 match, instrinsic_matrix)
             print(
-                f"Number of pose keypoints={len(pose_match['query_keypoints'])}")
+                f"Number of pose inliers={len(pose_match['query_keypoints'])}")
 
             pose = trf.change_pose(prev_pose, rel_pose)
             poses.append(pose)
@@ -90,7 +91,7 @@ def tracking(data_dir: str) -> None:
             panel.add_camera(pose, color=(255, 0, 0))
             panel.update()
 
-            key = cv.waitKey(0)
+            key = cv.waitKey(30)
             if key == 27:
                 break
         else:
@@ -102,6 +103,9 @@ def tracking(data_dir: str) -> None:
         intrinsic_matrices.append(instrinsic_matrix)
         descriptor_pairs.append(frame_descriptor_pair)
         gt_poses.append(gt_pose)
+
+    print('Track is complete. Press key + ENTER to quit')
+    sys.stdin.read(1)
 
     panel.destroy_window()
 
