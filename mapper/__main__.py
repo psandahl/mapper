@@ -14,12 +14,12 @@ import mapper.vision.tracking as trk
 import mapper.vision.transform as trf
 
 
-def print_pose_comparision(label: str, yprt: tuple, yprt_gt: tuple) -> None:
-    ypr, t = yprt
-    ypr_gt, t_gt = yprt_gt
+def print_pose_comparision(pose: np.ndarray, gt_pose: np.ndarray) -> None:
+    ypr, t = mat.decomp_pose_matrix_yprt_yxz(pose)
+    ypr_gt, t_gt = mat.decomp_pose_matrix_yprt_yxz(gt_pose)
     dist = np.linalg.norm(t - t_gt)
 
-    print(f'Pose comparision {label}')
+    print('Pose comparision')
     print(' Position:')
     print(f'  VO x={t[0]:+.2f} y={t[1]:+.2f} z={t[2]:+.2f}')
     print(f'  GT x={t_gt[0]:+.2f} y={t_gt[1]:+.2f} z={t_gt[2]:+.2f}')
@@ -47,6 +47,8 @@ def tracking(data_dir: str) -> None:
     for image, proj_matrix, gt_pose in kd.KittiData(data_dir):
         frame_nr = len(images)
 
+        print(f'Processing frame={frame_nr}')
+
         # Unpack the intrinsic matrix.
         instrinsic_matrix, _ = mat.decomp_pose_matrix(proj_matrix)
 
@@ -61,15 +63,17 @@ def tracking(data_dir: str) -> None:
             prev_descriptor_pair = misc.last_in(descriptor_pairs)
 
             match = kp.match(prev_descriptor_pair, frame_descriptor_pair)
+            print(
+                f"Number of matching keypoints={len(match['query_keypoints'])}")
             rel_pose, pose_match = trk.visual_pose_prediction(
                 match, instrinsic_matrix)
+            print(
+                f"Number of pose keypoints={len(pose_match['query_keypoints'])}")
 
             pose = trf.change_pose(prev_pose, rel_pose)
             poses.append(pose)
 
-            print_pose_comparision(f'frame={frame_nr}',
-                                   mat.decomp_pose_matrix_yprt_yxz(pose),
-                                   mat.decomp_pose_matrix_yprt_yxz(gt_pose))
+            print_pose_comparision(pose, gt_pose)
 
             panel.set_caption(f'frame={frame_nr}')
             panel.set_pose_matches(prev_image,
@@ -86,7 +90,7 @@ def tracking(data_dir: str) -> None:
             panel.add_camera(pose, color=(255, 0, 0))
             panel.update()
 
-            key = cv.waitKey(30)
+            key = cv.waitKey(0)
             if key == 27:
                 break
         else:
