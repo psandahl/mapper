@@ -1,24 +1,7 @@
 import numpy as np
 
-import sys
 
 import mapper.vision.matrix as mat
-
-
-def last_in(xs: list) -> any:
-    """
-    Get the last element in a list.
-
-    Parameters:
-        xs: The list.
-
-    Returns:
-        The last value.
-    """
-    assert isinstance(xs, list), 'Argument is assumed to be a list'
-    assert len(xs) > 0, 'List must not be empty'
-
-    return xs[len(xs) - 1]
 
 
 def read_2d_box_from_3x4_matrices(filename: str) -> tuple():

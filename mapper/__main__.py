@@ -8,7 +8,6 @@ import mapper.util.kittidata as kd
 import mapper.util.misc as misc
 from mapper.util.panel import Panel
 
-import mapper.vision.image as im
 import mapper.vision.matrix as mat
 import mapper.vision.keypoint as kp
 import mapper.vision.tracking as trk
@@ -28,6 +27,13 @@ def print_pose_comparision(pose: np.ndarray, gt_pose: np.ndarray) -> None:
     print(' Rotation:')
     print(f'  VO y={ypr[0]:+.2f} p={ypr[1]:+.2f} r={ypr[2]:+.2f}')
     print(f'  GT y={ypr_gt[0]:+.2f} p={ypr_gt[1]:+.2f} r={ypr_gt[2]:+.2f}')
+
+
+def pose_distance(pose_0: np.ndarray, pose_1: np.ndarray) -> float:
+    _, t_0 = mat.decomp_pose_matrix(pose_0)
+    _, t_1 = mat.decomp_pose_matrix(pose_1)
+
+    return np.linalg.norm(t_1 - t_0)
 
 
 def tracking(data_dir: str) -> None:
@@ -59,16 +65,16 @@ def tracking(data_dir: str) -> None:
 
         if frame_id > 0:
             # Do stuff.
-            prev_image = im.visualization_image(misc.last_in(images))
-            prev_pose = misc.last_in(poses)
-            prev_descriptor_pair = misc.last_in(descriptor_pairs)
+            prev_image = images[-1]
+            prev_pose = poses[-1]
+            prev_descriptor_pair = descriptor_pairs[-1]
 
             match = kp.match(prev_descriptor_pair, frame_id - 1,
                              frame_descriptor_pair, frame_id)
             print(
                 f"Number of matching keypoints={len(match['query_keypoints'])}")
-            rel_pose, pose_match = trk.visual_pose_prediction(
-                match, instrinsic_matrix)
+            rel_pose, pose_match = trk.visual_pose_prediction(match,
+                                                              instrinsic_matrix)
             print(
                 f"Number of pose inliers={len(pose_match['query_keypoints'])}")
 
@@ -116,6 +122,8 @@ def main():
     tracking('C:\\Users\\patri\\kitti\\KITTI_sequence_2')
     # tracking('C:\\Users\\patri\\kitti\\KITTI_sequence_long_1')
     # tracking('C:\\Users\\patri\\kitti\\parking\\parking')
+
+    # tracking_and_mapping('C:\\Users\\patri\\kitti\\KITTI_sequence_2')
 
 
 if __name__ == '__main__':
