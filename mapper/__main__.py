@@ -46,9 +46,9 @@ def tracking(data_dir: str) -> None:
 
     # Iterate through dataset.
     for image, proj_matrix, gt_pose in kd.KittiData(data_dir):
-        frame_nr = len(images)
+        frame_id = len(images)
 
-        print(f'Processing frame={frame_nr}')
+        print(f'Processing frame={frame_id}')
 
         # Unpack the intrinsic matrix.
         instrinsic_matrix, _ = mat.decomp_pose_matrix(proj_matrix)
@@ -57,13 +57,14 @@ def tracking(data_dir: str) -> None:
         frame_keypoints = kp.detect(image, 650)
         frame_descriptor_pair = kp.compute(image, frame_keypoints)
 
-        if frame_nr > 0:
+        if frame_id > 0:
             # Do stuff.
             prev_image = im.visualization_image(misc.last_in(images))
             prev_pose = misc.last_in(poses)
             prev_descriptor_pair = misc.last_in(descriptor_pairs)
 
-            match = kp.match(prev_descriptor_pair, frame_descriptor_pair)
+            match = kp.match(prev_descriptor_pair, frame_id - 1,
+                             frame_descriptor_pair, frame_id)
             print(
                 f"Number of matching keypoints={len(match['query_keypoints'])}")
             rel_pose, pose_match = trk.visual_pose_prediction(
@@ -76,7 +77,7 @@ def tracking(data_dir: str) -> None:
 
             print_pose_comparision(pose, gt_pose)
 
-            panel.set_caption(f'frame={frame_nr}')
+            panel.set_caption(f'frame={frame_id}')
             panel.set_pose_matches(prev_image,
                                    cv.KeyPoint_convert(
                                        prev_descriptor_pair[0]),

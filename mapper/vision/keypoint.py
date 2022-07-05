@@ -18,7 +18,9 @@ extractor = None
 matcher = None
 
 
-def configure_keypoint(keypoint_type: KeypointType, agast_threshold: int = 15, orb_features: int = 5000):
+def configure_keypoint(keypoint_type: KeypointType,
+                       agast_threshold: int = 15,
+                       orb_features: int = 5000) -> None:
     """
     Configure keypoint detector/matcher.
     """
@@ -209,7 +211,7 @@ def compute(image: cv.Mat, keypoints: list) -> tuple:
     return extractor.compute(image, keypoints)
 
 
-def match(train: tuple, query: tuple) -> dict:
+def match(train: tuple, train_id: int, query: tuple, query_id: int) -> dict:
     """
     Match descriptors and select keypoints and descriptors from best matches.
 
@@ -245,8 +247,10 @@ def match(train: tuple, query: tuple) -> dict:
             desc11.append(desc1[train_idx])
 
     match = dict()
+    match['train_id'] = train_id
     match['train_keypoints'] = kpt00
     match['train_descriptors'] = desc00
+    match['query_id'] = query_id
     match['query_keypoints'] = kpt11
     match['query_descriptors'] = desc11
 

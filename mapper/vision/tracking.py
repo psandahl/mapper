@@ -45,8 +45,10 @@ def visual_pose_prediction(match: dict, intrinsic_matrix: np.ndarray, scale: flo
     match1 = dict()
     match1['train_keypoints'] = kpt0
     match1['train_descriptors'] = desc0
+    match1['train_id'] = match['train_id']
     match1['query_keypoints'] = kpt1
     match1['query_descriptors'] = desc1
+    match1['query_id'] = match['query_id']
 
     _, R, t, _ = cv.recoverPose(E, cv.KeyPoint_convert(kpt0),
                                 cv.KeyPoint_convert(kpt1), intrinsic_matrix)
