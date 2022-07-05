@@ -80,7 +80,7 @@ def gray_convert(image: cv.Mat) -> cv.Mat:
     Returns:
         The gray image.
     """
-    assert is_image(image), 'Argument is supposed to be an image'
+    assert is_image(image)
 
     if num_channels(image) == 3:
         return cv.cvtColor(image, cv.COLOR_BGR2GRAY)
@@ -99,7 +99,7 @@ def scale_image(image: cv.Mat, factor: float) -> cv.Mat:
     Returns:
         The scaled image.
     """
-    assert is_image(image), 'Argument is supposed to be an image'
+    assert is_image(image)
 
     interpolation = cv.INTER_AREA if factor < 1.0 else cv.INTER_CUBIC
     return cv.resize(image, None, None, factor, factor, interpolation)
@@ -115,7 +115,7 @@ def visualization_image(image: cv.Mat) -> cv.Mat:
     Returns:
         The presentation image.
     """
-    assert is_image(image), 'Argument is supposed to be an image'
+    assert is_image(image)
 
     if num_channels(image) == 3:
         return image.copy()
@@ -133,8 +133,8 @@ def generate_features(image: cv.Mat, refine=True) -> np.ndarray:
     Returns:
         Numpy array with corner features.
     """
-    assert is_image(image), 'Argument is supposed to be an image'
-    assert num_channels(image) == 1, 'Image is supposed to be single channel'
+    assert is_image(image)
+    assert num_channels(image) == 1
 
     quality_level = 0.05
 
@@ -157,8 +157,8 @@ def draw_features(image: cv.Mat, features: np.ndarray, color: tuple = (0, 255, 0
         feature: The features.
         color: The color for the circles to be drawn.
     """
-    assert is_image(image), 'Argument is supposed to be an image'
-    assert num_channels(image) == 3, 'Image is supposed to have three channels'
+    assert is_image(image)
+    assert num_channels(image) == 3
 
     for feature in features:
         cv.circle(image, to_cv_point(feature), 3, color)
@@ -180,18 +180,13 @@ def draw_matching_features(image0: cv.Mat, features0: np.ndarray,
     Returns:
         The image with matching features.
     """
-    assert is_image(image0), 'Image0 is supposed to be an image'
-    assert num_channels(
-        image0) == 3, 'Image0 is supposed to have three channels'
-    assert is_image(image1), 'Image1 is supposed to be an image'
-    assert num_channels(
-        image1) == 3, 'Image1 is supposed to have three channels'
-    assert isinstance(
-        features0, np.ndarray), 'Features0 is supposed to be an array'
-    assert isinstance(
-        features1, np.ndarray), 'Features1 is supposed to be an array'
-    assert len(features0) == len(
-        features1), 'Feature arrays must be of same length'
+    assert is_image(image0)
+    assert num_channels(image0) == 3
+    assert is_image(image1)
+    assert num_channels(image1) == 3
+    assert isinstance(features0, np.ndarray)
+    assert isinstance(features1, np.ndarray)
+    assert len(features0) == len(features1)
 
     w, h = image_size(image0)
     offset = np.array([w, 0.0])
@@ -214,8 +209,8 @@ def draw_matching_features(image0: cv.Mat, features0: np.ndarray,
 
 def to_cv_point(point: np.ndarray) -> tuple:
     """Helper function to convert a numpy point to a cv point"""
-    assert isinstance(point, np.ndarray), 'Point is supposed to be an array'
-    assert len(point) == 2, 'Point is supposed to have two elements'
+    assert isinstance(point, np.ndarray)
+    assert len(point) == 2
 
     x, y = np.round(point)
     return (int(x), int(y))
@@ -223,7 +218,7 @@ def to_cv_point(point: np.ndarray) -> tuple:
 
 def flatten_feature_array(xs: np.ndarray) -> np.ndarray:
     """Helper function to flatten an array of image points"""
-    assert isinstance(xs, np.ndarray), 'Argument is supposed to be an array'
+    assert isinstance(xs, np.ndarray)
 
     if len(xs) > 0 and isinstance(xs[0][0], np.ndarray):
         return np.array([x.flatten() for x in xs])
@@ -241,8 +236,8 @@ def gray_flow_visualization_image(flow: cv.Mat) -> cv.Mat:
     Returns:
         A normalized floating point image with magnitudes.
     """
-    assert is_image(flow), 'Argument is assumed to be an image'
-    assert num_channels(flow) == 2, 'Argument is supposed to have two channels'
+    assert is_image(flow)
+    assert num_channels(flow) == 2
 
     rows, cols, channels = flow.shape
     viz = np.zeros(shape=(rows, cols), dtype=np.float32)
@@ -267,8 +262,8 @@ def interpolate_pixel(image: cv.Mat, x: float, y: float) -> any:
     Returns:
         The weighted image value.  
     """
-    assert is_image(image), 'Argument is assumed to be an image'
-    assert x >= 0 and y >= 0, 'Pixel coordinates must be >= 0'
+    assert is_image(image)
+    assert x >= 0 and y >= 0
 
     # Integer part.
     i_x = math.floor(x)

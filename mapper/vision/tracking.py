@@ -16,11 +16,9 @@ def visual_pose_prediction(match: dict, intrinsic_matrix: np.ndarray, scale: flo
     Returns:
         A tuple (pose matrix describing base change from train to query, inlier matches).
     """
-    assert isinstance(match, dict), 'match is assumed to be a dictionary'
-    assert isinstance(
-        intrinsic_matrix, np.ndarray), 'intrinsic matrix is assumed to be a matrix'
-    assert intrinsic_matrix.shape == (
-        3, 3), 'intrinsic matrix is assumed to be 3x3'
+    assert isinstance(match, dict)
+    assert isinstance(intrinsic_matrix, np.ndarray)
+    assert intrinsic_matrix.shape == (3, 3)
 
     train = cv.KeyPoint_convert(match['train_keypoints'])
     query = cv.KeyPoint_convert(match['query_keypoints'])

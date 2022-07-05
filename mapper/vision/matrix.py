@@ -17,10 +17,10 @@ def ideal_intrinsic_matrix(fov: tuple, image_size: tuple) -> cv.Mat:
     Returns:
         A 3x3 intrinsic matrix.
     """
-    assert isinstance(fov, tuple), "fov is assumed to be a tuple"
-    assert len(fov) == 2, "fov shall have two elements"
-    assert isinstance(image_size, tuple), "image_size is assumed to be a tuple"
-    assert len(image_size) == 2, "image_size shall have two elements"
+    assert isinstance(fov, tuple)
+    assert len(fov) == 2
+    assert isinstance(image_size, tuple)
+    assert len(image_size) == 2
 
     h_fov, v_fov = fov
     w, h = image_size
@@ -46,8 +46,8 @@ def decomp_intrinsic_matrix(mat: np.ndarray) -> tuple:
     Returns:
         A nested tuple ((h_fov, vfov), (w, h)).
     """
-    assert isinstance(mat, np.ndarray), 'Argument is assumed to be a matrix'
-    assert mat.shape == (3, 3), 'Matrix is assumed to be 3x3'
+    assert isinstance(mat, np.ndarray)
+    assert mat.shape == (3, 3)
 
     w = mat[0, 2] * 2.0 + 1
     h = mat[1, 2] * 2.0 + 1
@@ -70,14 +70,10 @@ def projection_matrix(intrinsic_mat: np.ndarray,
     Retrurns:
         A 3x4 projection matrix.
     """
-    assert isinstance(intrinsic_mat,
-                      np.ndarray), 'intrinsic_matrix is assumed to be a matrix'
-    assert intrinsic_mat.shape == (
-        3, 3), 'instrinsic_matrix is assumed to be 3x3'
-    assert isinstance(extrinsic_mat,
-                      np.ndarray), 'extrinsic_matrix is assumed to be a matrix'
-    assert extrinsic_mat.shape == (
-        3, 4), 'instrinsic_matrix is assumed to be 3x4'
+    assert isinstance(intrinsic_mat, np.ndarray)
+    assert intrinsic_mat.shape == (3, 3)
+    assert isinstance(extrinsic_mat, np.ndarray)
+    assert extrinsic_mat.shape == (3, 4)
 
     return intrinsic_mat @ extrinsic_mat
 
@@ -93,10 +89,10 @@ def pose_matrix(R: np.ndarray, t: np.ndarray) -> np.ndarray:
     Returns:
         A 3x4 pose matrix.
     """
-    assert isinstance(R, np.ndarray), 'R is assumed to be a matrix'
-    assert R.shape == (3, 3), 'R is assumed to be 3x3'
-    assert isinstance(t, np.ndarray), 't is assumed to be an array'
-    assert len(t) == 3, 't is assumed to have 3 elements'
+    assert isinstance(R, np.ndarray)
+    assert R.shape == (3, 3)
+    assert isinstance(t, np.ndarray)
+    assert len(t) == 3
 
     return np.hstack((R, t.reshape(3, 1)))
 
@@ -111,8 +107,8 @@ def decomp_pose_matrix(mat: np.ndarray) -> tuple:
     Returns:
         A tuple (R, t)
     """
-    assert isinstance(mat, np.ndarray), 'Argument is assumed to be a matrix'
-    assert mat.shape == (3, 4), 'Matrix is assumed to be 3x4'
+    assert isinstance(mat, np.ndarray)
+    assert mat.shape == (3, 4)
 
     return (mat[:, :3].copy(), mat[:, 3].copy())
 
@@ -142,8 +138,8 @@ def homogeneous_matrix(mat: np.ndarray) -> np.ndarray:
     Returns:
         A 4x4 homogeneous matrix.
     """
-    assert isinstance(mat, np.ndarray), 'Argument is assumed to be a matrix'
-    assert mat.shape == (3, 4), 'Matrix is assumed to be 3x4'
+    assert isinstance(mat, np.ndarray)
+    assert mat.shape == (3, 4)
 
     return np.vstack((mat, np.array([0.0, 0.0, 0.0, 1.0])))
 
@@ -158,8 +154,8 @@ def decomp_homogeneous_matrix(mat: np.ndarray) -> np.ndarray:
     Returns:
         A 3x4 matrix.
     """
-    assert isinstance(mat, np.ndarray), 'Argument is assumed to be a matrix'
-    assert mat.shape == (4, 4), 'Matrix is assumed to be 4x4'
+    assert isinstance(mat, np.ndarray)
+    assert mat.shape == (4, 4)
 
     return mat[:3, :4].copy()
 
@@ -168,8 +164,8 @@ def intrinsic_matrix_35mm_film(focal_length: float, image_size: tuple) -> cv.Mat
     """
     Helper function to compute an intrinsic matrix for a 35mm file (e.g. iphone Exif).
     """
-    assert isinstance(image_size, tuple), 'Argument is assumed to be a tuple'
-    assert len(image_size) == 2, 'Argument is assumed to have two elements'
+    assert isinstance(image_size, tuple)
+    assert len(image_size) == 2
 
     aspect_ratio = utils.aspect_ratio(image_size)
     h_fov = utils.fov_from_focal_length(focal_length, 35)
@@ -190,10 +186,10 @@ def extrinsic_matrix(R: np.ndarray, t: np.ndarray) -> np.ndarray:
     Returns:
         3x4 matrix transforming to camera space.
     """
-    assert isinstance(R, np.ndarray), 'R is assumed to be a matrix'
-    assert R.shape == (3, 3), 'R is assumed to be 3x3'
-    assert isinstance(t, np.ndarray), 't is assumed to be an array'
-    assert len(t) == 3, 't is assumed to have 3 elements'
+    assert isinstance(R, np.ndarray)
+    assert R.shape == (3, 3)
+    assert isinstance(t, np.ndarray)
+    assert len(t) == 3
 
     return np.hstack((R.T, R.T @ -t.reshape(3, 1)))
 
@@ -209,8 +205,8 @@ def decomp_extrinsic_matrix(mat: np.ndarray) -> tuple:
     Returns:
         Tuple (R, t), similar to arguments for extrinsic data.
     """
-    assert isinstance(mat, np.ndarray), 'Argument is assumed to be a matrix'
-    assert mat.shape == (3, 4), 'Matrix is assumed to be 3x4'
+    assert isinstance(mat, np.ndarray)
+    assert mat.shape == (3, 4)
 
     R = mat[:, :3].copy()
     t = mat[:, 3].copy()
@@ -247,10 +243,10 @@ def decomp_extrinsic_rtvec(rvec: np.ndarray, tvec: np.ndarray) -> tuple:
     Returns:
         Tuple (R, t), similar to arguments for extrinsic data.
     """
-    assert isinstance(rvec, np.ndarray), 'Argument is assumed to be an array'
-    assert len(rvec) == 3, 'rvec is assumed to of length 3'
-    assert isinstance(tvec, np.ndarray), 'Argument is assumed to be an array'
-    assert len(tvec) == 3, 'tvec is assumed to of length 3'
+    assert isinstance(rvec, np.ndarray)
+    assert len(rvec) == 3
+    assert isinstance(tvec, np.ndarray)
+    assert len(tvec) == 3
 
     R, jac = cv.Rodrigues(rvec)
 
@@ -262,12 +258,12 @@ def look_at_yxz(eye: np.ndarray, at: np.ndarray, down: np.ndarray) -> tuple:
     Create a rotation matrix and t vector from look at vectorts. Suitable
     for OpenCV camera frames.
     """
-    assert isinstance(eye, np.ndarray), 'Argument is assumed to be an array'
-    assert len(eye) == 3, 'eye is assumed to of length 3'
-    assert isinstance(at, np.ndarray), 'Argument is assumed to be an array'
-    assert len(at) == 3, 'at is assumed to of length 3'
-    assert isinstance(down, np.ndarray), 'Argument is assumed to be an array'
-    assert len(down) == 3, 'eye is assumed to of length 3'
+    assert isinstance(eye, np.ndarray)
+    assert len(eye) == 3
+    assert isinstance(at, np.ndarray)
+    assert len(at) == 3
+    assert isinstance(down, np.ndarray)
+    assert len(down) == 3
 
     z = at - eye
     z /= np.linalg.norm(z)
@@ -322,8 +318,8 @@ def decomp_ypr_matrix_yxz(mat: np.ndarray) -> tuple:
     Parameters:
         Tuple (yaw, pitch, roll) in degrees.
     """
-    assert isinstance(mat, np.ndarray), 'Argument is assumed to be a matrix'
-    assert mat.shape == (3, 3), 'Matrix is assumed to be 3x3'
+    assert isinstance(mat, np.ndarray)
+    assert mat.shape == (3, 3)
 
     y = math.atan2(mat[0, 2], mat[2, 2])
     x = math.asin(-mat[1, 2])

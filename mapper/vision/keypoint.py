@@ -64,8 +64,8 @@ def detect(image: cv.Mat, num_ret_points: int = 1500) -> list:
     Returns:
         Keypoints for the image.
     """
-    assert im.is_image(image), 'Argument is assumed to be an image'
-    assert im.num_channels(image) == 1, 'Image is assumed to be gray scale'
+    assert im.is_image(image)
+    assert im.num_channels(image) == 1
 
     if detector is None:
         configure_keypoint(KeypointType.AGAST)
@@ -203,10 +203,9 @@ def compute(image: cv.Mat, keypoints: list) -> tuple:
     Returns:
         Tuple (keypoints, descriptors).
     """
-    assert im.is_image(image), 'Argument is assumed to be an image'
-    assert im.num_channels(image), 'Image is supposed to be a gray scale image'
-    assert isinstance(keypoints, tuple) or isinstance(
-        keypoints, list), 'Tuple or list'
+    assert im.is_image(image)
+    assert im.num_channels(image)
+    assert isinstance(keypoints, tuple) or isinstance(keypoints, list)
 
     return extractor.compute(image, keypoints)
 

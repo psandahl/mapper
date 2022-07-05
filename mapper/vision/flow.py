@@ -15,14 +15,11 @@ def dense_optical_flow(image0: cv.Mat, image1: cv.Mat) -> cv.Mat:
     Returns:
         A two channel floating point image with flow from image0 to image1.
     """
-    assert im.is_image(image0), 'Image0 is assumed to be an image'
-    assert im.num_channels(
-        image0) == 1, 'Image0 is supposed to have one channel'
-    assert im.is_image(image1), 'Image1 is assumed to be an image'
-    assert im.num_channels(
-        image1) == 1, 'Image1 is supposed to have one channel'
-    assert im.image_size(image0) == im.image_size(
-        image1), 'Images are supposed to have same size'
+    assert im.is_image(image0)
+    assert im.num_channels(image0) == 1
+    assert im.is_image(image1)
+    assert im.num_channels(image1) == 1
+    assert im.image_size(image0) == im.image_size(image1)
 
     rows, cols = image0.shape
     flow = np.zeros(shape=(rows, cols, 2), dtype=np.float32)
@@ -43,11 +40,9 @@ def matching_features_from_flow(flow: cv.Mat, features: np.ndarray) -> np.ndarra
     Returns:
         Features for image1.
     """
-    assert im.is_image(flow), 'Argument is assumed to be an image'
-    assert im.num_channels(
-        flow) == 2, 'Argument is supposed to have two channels'
-    assert isinstance(
-        features, np.ndarray), 'Argument is supposed to be an array'
+    assert im.is_image(flow)
+    assert im.num_channels(flow) == 2
+    assert isinstance(features, np.ndarray)
 
     targets = list()
     for feature in features:

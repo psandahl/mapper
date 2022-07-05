@@ -14,10 +14,11 @@ def remap_frame(R: np.ndarray, map: np.ndarray) -> np.ndarray:
         R: 3x3 rotation matrix.
         map: 3x3 rotation matrix.
     """
-    assert isinstance(R, np.ndarray), 'Argument is assumed to be a matrix'
-    assert R.shape == (3, 3), 'Matrix is assumed to be 3x3'
-    assert isinstance(map, np.ndarray), 'Argument is assumed to be a matrix'
-    assert map.shape == (3, 3), 'Matrix is assumed to be 3x3'
+    assert isinstance(R, np.ndarray)
+    assert R.shape == (3, 3)
+    assert isinstance(map, np.ndarray)
+    assert map.shape == (3, 3)
+
     return R @ map.T
 
 
@@ -32,10 +33,10 @@ def world_to_camera_mat(ext: np.ndarray, xyz: np.ndarray) -> np.ndarray:
     Returns:
         The camera coordinate.
     """
-    assert isinstance(ext, np.ndarray), 'Argument is assumed to be a matrix'
-    assert ext.shape == (3, 4), 'Matrix is assumed to be 3x4'
-    assert isinstance(xyz, np.ndarray), 'Argument is assumed to be an array'
-    assert len(xyz) == 3, 'Array is assumed to be of length 3'
+    assert isinstance(ext, np.ndarray)
+    assert ext.shape == (3, 4)
+    assert isinstance(xyz, np.ndarray)
+    assert len(xyz) == 3
 
     xyz_h = np.append(xyz, 1.0)
     return ext @ xyz_h
@@ -52,10 +53,10 @@ def camera_to_world_mat(ext: np.ndarray, xyz: np.ndarray) -> np.ndarray:
     Returns:
         The world coordinate.
     """
-    assert isinstance(ext, np.ndarray), 'Argument is assumed to be a matrix'
-    assert ext.shape == (3, 4), 'Matrix is assumed to be 3x4'
-    assert isinstance(xyz, np.ndarray), 'Argument is assumed to be an array'
-    assert len(xyz) == 3, 'Array is assumed to be of length 3'
+    assert isinstance(ext, np.ndarray)
+    assert ext.shape == (3, 4)
+    assert isinstance(xyz, np.ndarray)
+    assert len(xyz) == 3
 
     # Decomp gives camera to world from start.
     R, t = mat.decomp_extrinsic_matrix(ext)
@@ -75,14 +76,14 @@ def world_to_camera_rtvec(rvec: np.ndarray, tvec: np.ndarray, xyz: np.ndarray) -
     Returns:
         The camera coordinate.
     """
-    assert isinstance(rvec, np.ndarray), 'Argument is assumed to be an array'
-    assert len(rvec) == 3, 'rvec is assumed to of length 3'
-    assert isinstance(tvec, np.ndarray), 'Argument is assumed to be an array'
-    assert len(tvec) == 3, 'tvec is assumed to of length 3'
-    assert isinstance(xyz, np.ndarray), 'Argument is assumed to be an array'
-    assert len(xyz) == 3, 'Array is assumed to be of length 3'
+    assert isinstance(rvec, np.ndarray)
+    assert len(rvec) == 3
+    assert isinstance(tvec, np.ndarray)
+    assert len(tvec) == 3
+    assert isinstance(xyz, np.ndarray)
+    assert len(xyz) == 3
 
-    R, jac = cv.Rodrigues(rvec)
+    R, _ = cv.Rodrigues(rvec)
 
     return R @ xyz + tvec
 
@@ -99,14 +100,14 @@ def camera_to_world_rtvec(rvec: np.ndarray, tvec: np.ndarray, xyz: np.ndarray) -
     Returns:
         The world coordinate.
     """
-    assert isinstance(rvec, np.ndarray), 'Argument is assumed to be an array'
-    assert len(xyz) == 3, 'Array is assumed to be of length 3'
-    assert isinstance(tvec, np.ndarray), 'Argument is assumed to be an array'
-    assert len(tvec) == 3, 'Array is assumed to be of length 3'
-    assert isinstance(xyz, np.ndarray), 'Argument is assumed to be an array'
-    assert len(xyz) == 3, 'Array is assumed to be of length 3'
+    assert isinstance(rvec, np.ndarray)
+    assert len(xyz) == 3
+    assert isinstance(tvec, np.ndarray)
+    assert len(tvec) == 3
+    assert isinstance(xyz, np.ndarray)
+    assert len(xyz) == 3
 
-    R, jac = cv.Rodrigues(rvec)
+    R, _ = cv.Rodrigues(rvec)
 
     # rtvec always go from world to camera - so invert!
     return R.T @ xyz + R.T @ -tvec
@@ -123,10 +124,10 @@ def change_pose(pose: np.ndarray, delta: np.ndarray) -> np.ndarray:
     Returns:
         The new pose.
     """
-    assert isinstance(pose, np.ndarray), 'Argument is assumed to be a matrix'
-    assert pose.shape == (3, 4), 'Matrix is assumed to be 3x4'
-    assert isinstance(delta, np.ndarray), 'Argument is assumed to be a matrix'
-    assert delta.shape == (3, 4), 'Matrix is assumed to be 3x4'
+    assert isinstance(pose, np.ndarray)
+    assert pose.shape == (3, 4)
+    assert isinstance(delta, np.ndarray)
+    assert delta.shape == (3, 4)
 
     new_pose = mat.homogeneous_matrix(
         pose) @ np.linalg.inv(mat.homogeneous_matrix(delta))
@@ -145,11 +146,10 @@ def project_point(projection_mat: np.ndarray, xyz: np.ndarray) -> np.ndarray:
     Returns:
         An image point.
     """
-    assert isinstance(
-        projection_mat, np.ndarray), 'Argument is assumed to be a matrix'
-    assert projection_mat.shape == (3, 4), 'Matrix is assumed to be 3x4'
-    assert isinstance(xyz, np.ndarray), 'Argument is assumed to be an array'
-    assert len(xyz) == 3, 'Array is assumed to be of length 3'
+    assert isinstance(projection_mat, np.ndarray)
+    assert projection_mat.shape == (3, 4)
+    assert isinstance(xyz, np.ndarray)
+    assert len(xyz) == 3
 
     xyz_h = np.append(xyz, 1.0)
     px = projection_mat @ xyz_h
