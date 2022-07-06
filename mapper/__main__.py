@@ -49,7 +49,7 @@ def tracking(data_dir: str) -> None:
     intrinsic_matrices = list()
     descriptor_pairs = list()
     gt_poses = list()
-    poses = list()
+    est_poses = list()
 
     # Iterate through dataset.
     for image, proj_matrix, gt_pose in kd.KittiData(data_dir):
@@ -67,7 +67,7 @@ def tracking(data_dir: str) -> None:
         if frame_id > 0:
             # Do stuff.
             prev_image = images[-1]
-            prev_pose = poses[-1]
+            prev_pose = est_poses[-1]
             prev_descriptor_pair = descriptor_pairs[-1]
 
             match = kp.match(prev_descriptor_pair, frame_id - 1,
@@ -80,7 +80,7 @@ def tracking(data_dir: str) -> None:
                 f"Number of pose prediction inliers={len(pose_match['query_keypoints'])}")
 
             pose = trf.change_pose(prev_pose, rel_pose)
-            poses.append(pose)
+            est_poses.append(pose)
 
             print_pose_comparision('prediction', pose, gt_pose)
 
@@ -104,7 +104,7 @@ def tracking(data_dir: str) -> None:
                 break
         else:
             # This is the first frame. Use the ground truth pose.
-            poses.append(gt_pose)
+            est_poses.append(gt_pose)
 
         # Save stuff.
         images.append(image)
@@ -112,7 +112,7 @@ def tracking(data_dir: str) -> None:
         descriptor_pairs.append(frame_descriptor_pair)
         gt_poses.append(gt_pose)
 
-    print('Track is complete. Press key + ENTER to quit')
+    print('Track is complete. Press ENTER to quit')
     sys.stdin.read(1)
 
     panel.destroy_window()
@@ -131,7 +131,8 @@ def tracking_and_mapping(data_dir: str, cheat_frames: int = 1) -> None:
     descriptor_pairs = list()
     pose_matches = list()
     gt_poses = list()
-    poses = list()
+    est_poses = list()
+    landmarks = list()
 
     # Iterate through dataset.
     for image, proj_matrix, gt_pose in kd.KittiData(data_dir):
@@ -149,7 +150,7 @@ def tracking_and_mapping(data_dir: str, cheat_frames: int = 1) -> None:
         if frame_id > 0:
             # Do stuff.
             prev_image = images[-1]
-            prev_pose = poses[-1]
+            prev_pose = est_poses[-1]
             prev_descriptor_pair = descriptor_pairs[-1]
 
             # Get a keypoint match with the previous frame.
@@ -180,13 +181,12 @@ def tracking_and_mapping(data_dir: str, cheat_frames: int = 1) -> None:
             # If there's at least two previous frames, we can map from the history
             # and do a better estimation for the current frame using the map.
             if len(images) > 1:
-                print('Map landmarks using history ...')
-
                 # Note: This requires adjacent frames atm.
                 map.sparse_mapping(frame_id,
-                                   poses[-2], intrinsic_matrices[-2], images[-2],
-                                   poses[-1], intrinsic_matrices[-1], images[-1],
-                                   pose_matches[-1])
+                                   est_poses[-2], intrinsic_matrices[-2], images[-2],
+                                   est_poses[-1], intrinsic_matrices[-1], images[-1],
+                                   pose_matches[-1],
+                                   landmarks)
 
             panel.set_caption(f'frame={frame_id}')
             panel.set_pose_matches(prev_image,
@@ -205,7 +205,7 @@ def tracking_and_mapping(data_dir: str, cheat_frames: int = 1) -> None:
 
             # Update lists with pose match with previous frame and the pose.
             pose_matches.append(pose_match)
-            poses.append(pose)
+            est_poses.append(pose)
 
             key = cv.waitKey(30)
             if key == 27:
@@ -213,7 +213,7 @@ def tracking_and_mapping(data_dir: str, cheat_frames: int = 1) -> None:
         else:
             # This is the first frame. Use the ground truth pose.
             pose_matches.append(None)
-            poses.append(gt_pose)
+            est_poses.append(gt_pose)
 
         # Save stuff.
         images.append(image)
@@ -221,7 +221,7 @@ def tracking_and_mapping(data_dir: str, cheat_frames: int = 1) -> None:
         descriptor_pairs.append(frame_descriptor_pair)
         gt_poses.append(gt_pose)
 
-    print('Track is complete. Press key + ENTER to quit')
+    print('Track is complete. ENTER to quit')
     sys.stdin.read(1)
 
     panel.destroy_window()
