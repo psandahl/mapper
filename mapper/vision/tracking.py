@@ -1,6 +1,7 @@
 import numpy as np
 import cv2 as cv
 
+import mapper.vision.image as im
 import mapper.vision.matrix as mat
 
 
@@ -52,3 +53,19 @@ def visual_pose_prediction(match: dict, intrinsic_matrix: np.ndarray, scale: flo
                                 cv.KeyPoint_convert(kpt1), intrinsic_matrix)
 
     return (mat.pose_matrix(R, t.flatten() * scale), match1)
+
+
+def landmark_pose_estimation(landmarks: list, descriptor_pair: tuple,
+                             intrinsic_matrix: np.array, pose: np.ndarray,
+                             image: np.ndarray) -> None:
+    assert isinstance(landmarks, list)
+    assert isinstance(descriptor_pair, tuple)
+    assert len(descriptor_pair) == 2
+    assert isinstance(intrinsic_matrix, np.ndarray)
+    assert intrinsic_matrix.shape == (3, 3)
+    assert isinstance(pose, np.ndarray)
+    assert pose.shape == (3, 4)
+    assert im.is_image(image)
+    assert im.num_channels(image) == 1
+
+    ()
