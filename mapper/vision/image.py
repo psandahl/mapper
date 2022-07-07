@@ -57,6 +57,26 @@ def image_size(image: cv.Mat) -> tuple:
         return (w, h)
 
 
+def within_image(image: np.ndarray, px: any) -> bool:
+    """
+    Check if a pixel is within the area of an image.
+
+    Parameters:
+        image: The image compare.
+        px: The pixel to check.
+
+    Returns:
+        True if pixel within image.
+    """
+    assert is_image(image)
+    assert len(px) == 2
+
+    w, h = image_size(image)
+    u, v = px
+
+    return u >= 0 and v >= 0 and u < w and v < h
+
+
 def read_image_bgr(path: str) -> cv.Mat:
     """
     Read an image, forced to be in BGR encoding.

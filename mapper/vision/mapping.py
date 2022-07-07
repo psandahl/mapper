@@ -17,7 +17,13 @@ class Landmark():
         self.use_count = 0
         self.latest_frame_used = id
 
-    def hamming_distance(self):
+    def get_xyz(self) -> np.ndarray:
+        return self.xyz
+
+    def get_intensity(self) -> float:
+        return self.frame_0['intensity']
+
+    def get_hamming_distance(self) -> int:
         """
         Get the hamming distance between the feature descriptors
         from which this landmark was triangulated.
@@ -25,7 +31,7 @@ class Landmark():
         return kp.hamming_distance(self.frame_0['descriptor'],
                                    self.frame_1['descriptor'])
 
-    def intensity_distance(self):
+    def get_intensity_distance(self) -> float:
         """
         Get the pixel intensity distance between the images
         from which this landmark was triangulated.

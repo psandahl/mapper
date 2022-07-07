@@ -188,6 +188,7 @@ def tracking_and_mapping(data_dir: str, cheat_frames: int = 1) -> None:
                                    pose_matches[-1],
                                    landmarks)
 
+            # Visualize stuff.
             panel.set_caption(f'frame={frame_id}')
             panel.set_pose_matches(prev_image,
                                    cv.KeyPoint_convert(
@@ -201,6 +202,7 @@ def tracking_and_mapping(data_dir: str, cheat_frames: int = 1) -> None:
 
             panel.add_camera(gt_pose)
             panel.add_camera(pose, color=(255, 0, 0))
+            panel.add_landmarks(landmarks)
             panel.update()
 
             # Update lists with pose match with previous frame and the pose.
@@ -233,7 +235,10 @@ def main():
     # tracking('C:\\Users\\patri\\kitti\\KITTI_sequence_long_1')
     # tracking('C:\\Users\\patri\\kitti\\parking\\parking')
 
+    # tracking_and_mapping('C:\\Users\\patri\\kitti\\KITTI_sequence_1')
     tracking_and_mapping('C:\\Users\\patri\\kitti\\KITTI_sequence_2')
+    # tracking_and_mapping('C:\\Users\\patri\\kitti\\KITTI_sequence_long_1')
+    # tracking_and_mapping('C:\\Users\\patri\\kitti\\parking\\parking')
 
 
 if __name__ == '__main__':

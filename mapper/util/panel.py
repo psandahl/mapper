@@ -28,7 +28,7 @@ class Panel():
 
         self.track_image = np.zeros(
             (track_image_height, track_image_width, 3), dtype=np.uint8)
-        self.track_image[:, :, :] = 127
+        #self.track_image[:, :, :] = 0
 
         # Setup camera for the track view.
         h_fov = 60
@@ -52,6 +52,8 @@ class Panel():
 
         self.track_image_rvec = rvec
         self.track_image_tvec = tvec
+
+        self.num_landmarks = 0
 
         # Draw lines to mark the data extent.
         self.draw_track_extent(data_extent)
@@ -132,7 +134,7 @@ class Panel():
         cv.line(self.track_image,
                 corners[3], corners[0], color=(0, 255, 0))
 
-    def add_axis(self, pose_matrix: np.ndarray) -> None:
+    def add_axes(self, pose_matrix: np.ndarray) -> None:
         R, t = mat.decomp_pose_matrix(pose_matrix)
 
         center_c = np.array([0.0, 0.0, 0.0])
@@ -189,3 +191,19 @@ class Panel():
         cv.line(self.track_image, points[2], points[3], color)
         cv.line(self.track_image, points[3], points[4], color)
         cv.line(self.track_image, points[4], points[1], color)
+
+    def add_landmarks(self, landmarks: list) -> None:
+        for landmark in landmarks[self.num_landmarks:len(landmarks)]:
+            px, _ = cv.projectPoints(np.array(landmark.get_xyz()),
+                                     self.track_image_rvec,
+                                     self.track_image_tvec,
+                                     self.track_image_intrinsic_matrix,
+                                     None)
+            px = np.round(px.flatten())
+            if im.within_image(self.track_image, px):
+                intensity = round(landmark.get_intensity())
+                u, v = px.astype(int)
+                self.track_image[v, u] = (
+                    intensity, intensity, intensity)
+
+        self.num_landmarks = len(landmarks)
