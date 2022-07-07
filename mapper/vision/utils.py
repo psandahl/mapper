@@ -1,3 +1,5 @@
+import numpy as np
+
 import math
 
 
@@ -65,3 +67,22 @@ def aspect_ratio(size: tuple) -> float:
     assert isinstance(size, tuple), 'Argument is assumed to be a tuple'
     assert len(size) == 2, 'Argument is assumed to have two elements'
     return size[0] / size[1]
+
+
+def circle_rect_collide(circle: tuple, rect: tuple) -> bool:
+    """
+    Check whether a circle and a rectangle collides.
+
+    Parameters:
+        circle: Tuple ((x, y), radius).
+        rect: Tuple ((min x, min y), (max x, max y))
+
+    Returns:
+        True if collision.
+    """
+    xy, radius = circle
+    min, max = rect
+
+    closest_point = np.clip(xy, min, max)
+
+    return np.linalg.norm(closest_point - xy) < radius
