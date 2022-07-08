@@ -1,9 +1,12 @@
 import numpy as np
 import cv2 as cv
 
+import itertools
+
 import mapper.vision.image as im
 import mapper.vision.matrix as mat
 import mapper.vision.transform as trf
+import mapper.vision.utils as utils
 
 
 class LandmarkHashGrid():
@@ -49,6 +52,52 @@ class LandmarkHashGrid():
         print(
             f'landmark hash grid. From {len(landmarks)} landmarks, {cnt} are used')
 
+    def get_landmarks(self, circle: tuple) -> list:
+        """
+        Get a set of landmarks matching the circle. Matches can be
+        outside the radius due to grid cell configuration though.
+        """
+        center, radius = circle
+
+        # Should only be called with a circle center within the target image.
+        if not self.within_image(center):
+            print('Warning: get_landmarks called with circle center outside image')
+            return list()
+
+        # Get the upper left and lower right pixels from radius.
+        ul_px = np.array(center) - radius
+        lr_px = np.array(center) + radius
+
+        # Make sure that pixel boundaries are aligned with image boundaries.
+        ul_px = np.clip(ul_px, (0, 0), np.array(self.image_size) - 1)
+        lr_px = np.clip(lr_px, (0, 0), np.array(self.image_size) - 1)
+
+        ul_grid_pos = self.px_to_grid_pos(ul_px)
+        lr_grid_pos = self.px_to_grid_pos(lr_px)
+
+        assert not ul_grid_pos is None
+        assert not lr_grid_pos is None
+
+        min_col, min_row = ul_grid_pos
+        max_col, max_row = lr_grid_pos
+
+        # Now iterate the cells identified by the boundaries, and append
+        # the cell's index if the cell is intersecting with the circle.
+        indices = list()
+        for row in range(min_row, max_row + 1):
+            for col in range(min_col, max_col + 1):
+                grid_pos = (col, row)
+                if utils.circle_rect_collide(circle, self.grid_pos_to_rect(grid_pos)):
+                    indices.append(self.grid_pos_to_grid_index(grid_pos))
+
+        # Fetch the data from the cell indicies.
+        matches = list()
+        for index in indices:
+            assert index < len(self.hash_grid)
+            matches.append(self.hash_grid[index])
+
+        return list(itertools.chain(*matches))
+
     def within_image(self, px) -> bool:
         """Check if pixel is whithin image."""
         u, v = px
@@ -75,6 +124,19 @@ class LandmarkHashGrid():
         col, row = grid_pos
 
         return int(row * w + col)
+
+    def grid_pos_to_rect(self, grid_pos: tuple) -> tuple:
+        """Get a rectangle (min, max) describing the area for the grid_pos."""
+        step_w, step_h = self.step
+        col, row = grid_pos
+
+        min_x = col * step_w
+        min_y = row * step_h
+
+        max_x = min_x + step_w - 1
+        max_y = min_y + step_h - 1
+
+        return ((min_x, min_y), (max_x, max_y))
 
 
 def visual_pose_prediction(match: dict, intrinsic_mat: np.ndarray, scale: float = 1.0) -> tuple:
@@ -129,7 +191,8 @@ def visual_pose_prediction(match: dict, intrinsic_mat: np.ndarray, scale: float 
 
 def landmark_pose_estimation(landmarks: list, descriptor_pair: tuple,
                              intrinsic_mat: np.array, pose: np.ndarray,
-                             image: np.ndarray) -> None:
+                             image: np.ndarray,
+                             radius: int = 80) -> None:
     assert isinstance(landmarks, list)
     assert isinstance(descriptor_pair, tuple)
     assert len(descriptor_pair) == 2
@@ -142,3 +205,10 @@ def landmark_pose_estimation(landmarks: list, descriptor_pair: tuple,
 
     hash_grid = LandmarkHashGrid(
         landmarks, intrinsic_mat, pose, im.image_size(image))
+
+    px = (500, 200)
+
+    matches = hash_grid.get_landmarks((px, radius))
+    print(f'Got {len(matches)}')
+    for uv, _ in matches:
+        print(uv)
