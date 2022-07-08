@@ -1,19 +1,23 @@
 import numpy as np
 import cv2 as cv
 
-import math
-
 import mapper.vision.image as im
 import mapper.vision.matrix as mat
 import mapper.vision.transform as trf
 
 
 class LandmarkHashGrid():
-    def __init__(self, landmarks: list,
+    def __init__(self,
+                 landmarks: list,
                  intrinsic_mat: np.ndarray,
                  pose: np.ndarray,
-                 image_size: tuple, grid: tuple = (10, 10)) -> None:
-        self.landmarks = landmarks
+                 image_size: tuple,
+                 grid: tuple = (10, 10)) -> None:
+        """
+        Create a hash grid from a list of landmarks. Landmarks
+        will be projected to determine if they're infront of
+        camera and within the image.
+        """
         self.image_size = image_size
         self.grid = grid
         self.step = np.ceil(np.divide(image_size, grid)).astype(int)
@@ -28,35 +32,49 @@ class LandmarkHashGrid():
                                                extrinsic_mat)
 
         # Populate the hash grid with useful points.
-        for index, landmark in enumerate(landmarks):
+        cnt = 0
+        for landmark in landmarks:
             # Project the landmark into the current image if it's
             # infront of the camera.
             if trf.infront_of_camera(extrinsic_mat, landmark.get_xyz()):
                 px = trf.project_point(projection_mat, landmark.get_xyz())
                 # Query for a matching grid index ...
-                grid_index = self.px_to_grid_index(px)
-                if not grid_index is None:
-                    # If found, insert the pixel and an index to the landmark.
-                    self.hash_grid[grid_index].append((px, index))
+                grid_pos = self.px_to_grid_pos(px)
+                if not grid_pos is None:
+                    cnt += 1
+                    # If found, insert the pixel and a reference to the landmark.
+                    grid_index = self.grid_pos_to_grid_index(grid_pos)
+                    self.hash_grid[grid_index].append((px, landmark))
+
+        print(
+            f'landmark hash grid. From {len(landmarks)} landmarks, {cnt} are used')
 
     def within_image(self, px) -> bool:
+        """Check if pixel is whithin image."""
         u, v = px
         w, h = self.image_size
 
         return u >= 0 and v >= 0 and u < w and v < h
 
-    def px_to_grid_index(self, px) -> any:
+    def px_to_grid_pos(self, px) -> any:
+        """Transform pixel to grid position (col, row)."""
         if self.within_image(px):
             u, v = px
-            w, h = self.grid
             step_w, step_h = self.step
 
             col = u // step_w
             row = v // step_h
 
-            return int(row * w + col)
+            return (col, row)
         else:
             return None
+
+    def grid_pos_to_grid_index(self, grid_pos: tuple) -> int:
+        """Transform grid position (col, row) to linear grid index."""
+        w, _ = self.grid
+        col, row = grid_pos
+
+        return int(row * w + col)
 
 
 def visual_pose_prediction(match: dict, intrinsic_mat: np.ndarray, scale: float = 1.0) -> tuple:
