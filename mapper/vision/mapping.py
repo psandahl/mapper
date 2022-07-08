@@ -109,9 +109,7 @@ def sparse_mapping(frame_id: int,
 
     inliers = 0
     for index, xyz in enumerate(world_points):
-        c_0 = trf.world_to_camera_mat(extrinsic_0, xyz)
-        c_1 = trf.world_to_camera_mat(extrinsic_1, xyz)
-        if c_0[2] > 0.0 and c_1[2] > 0.0:
+        if trf.infront_of_camera(extrinsic_0, xyz) and trf.infront_of_camera(extrinsic_1, xyz):
             uv_0 = img_points_0[index]
             frame_0 = dict({
                 'id': train_id,

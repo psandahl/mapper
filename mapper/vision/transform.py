@@ -42,6 +42,11 @@ def world_to_camera_mat(ext: np.ndarray, xyz: np.ndarray) -> np.ndarray:
     return ext @ xyz_h
 
 
+def infront_of_camera(ext: np.ndarray, xyz: np.ndarray) -> np.ndarray:
+    _, _, z = world_to_camera_mat(ext, xyz)
+    return z > 0.0
+
+
 def camera_to_world_mat(ext: np.ndarray, xyz: np.ndarray) -> np.ndarray:
     """
     Transform a camera coordinate to a world coordinate using an extrinsic matrix.

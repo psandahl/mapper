@@ -27,15 +27,17 @@ class LandmarkHashGrid():
         projection_mat = mat.projection_matrix(intrinsic_mat,
                                                extrinsic_mat)
 
-        # Populate the hash grid ...
+        # Populate the hash grid with useful points.
         for index, landmark in enumerate(landmarks):
-            # Project the landmark into the current image.
-            px = trf.project_point(projection_mat, landmark.get_xyz())
-            # Query for a matching grid index ...
-            grid_index = self.px_to_grid_index(px)
-            if not grid_index is None:
-                # If found, insert the pixel and an index to the landmark.
-                self.hash_grid[grid_index].append((px, index))
+            # Project the landmark into the current image if it's
+            # infront of the camera.
+            if trf.infront_of_camera(extrinsic_mat, landmark.get_xyz()):
+                px = trf.project_point(projection_mat, landmark.get_xyz())
+                # Query for a matching grid index ...
+                grid_index = self.px_to_grid_index(px)
+                if not grid_index is None:
+                    # If found, insert the pixel and an index to the landmark.
+                    self.hash_grid[grid_index].append((px, index))
 
     def within_image(self, px) -> bool:
         u, v = px
