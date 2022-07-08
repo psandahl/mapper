@@ -20,6 +20,9 @@ class Landmark():
     def get_xyz(self) -> np.ndarray:
         return self.xyz
 
+    def get_descriptor(self):
+        return self.frame_0['descriptor']
+
     def get_intensity(self) -> float:
         return self.frame_0['intensity']
 

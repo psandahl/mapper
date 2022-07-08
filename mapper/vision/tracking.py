@@ -4,6 +4,7 @@ import cv2 as cv
 import itertools
 
 import mapper.vision.image as im
+import mapper.vision.keypoint as kpt
 import mapper.vision.matrix as mat
 import mapper.vision.transform as trf
 import mapper.vision.utils as utils
@@ -189,6 +190,9 @@ def visual_pose_prediction(match: dict, intrinsic_mat: np.ndarray, scale: float 
     return (mat.pose_matrix(R, t.flatten() * scale), match1)
 
 
+# def squared_distance(px0, px1) -> float:
+
+
 def landmark_pose_estimation(landmarks: list, descriptor_pair: tuple,
                              intrinsic_mat: np.array, pose: np.ndarray,
                              image: np.ndarray,
@@ -203,12 +207,41 @@ def landmark_pose_estimation(landmarks: list, descriptor_pair: tuple,
     assert im.is_image(image)
     assert im.num_channels(image) == 1
 
+    hamming_threshold = 100
+
+    sq_radius = radius ** 2
+
     hash_grid = LandmarkHashGrid(
         landmarks, intrinsic_mat, pose, im.image_size(image))
 
-    px = (500, 200)
+    # Match the feature descriptors with landmarks in the same image region.
+    features, descriptors = descriptor_pair
+    print(f'Processing {len(features)} features ...')
+    for feature_index, feature in enumerate(features):
+        descriptor = descriptors[feature_index]
+        feature_px = np.array(feature.pt)
 
-    matches = hash_grid.get_landmarks((px, radius))
-    print(f'Got {len(matches)}')
-    for uv, _ in matches:
-        print(uv)
+        annotated_landmarks = list()
+
+        landmarks = hash_grid.get_landmarks(
+            (im.to_cv_point(feature_px), radius))
+        for landmark_px, landmark in landmarks:
+
+            # As the landmarks from the hash grid is cell based,
+            # check the radius.
+            sq_distance = np.square(landmark_px - feature_px).sum()
+            if sq_distance < sq_radius:
+                hamming_distance = kpt.hamming_distance(descriptor,
+                                                        landmark.get_descriptor())
+                if hamming_distance < hamming_threshold:
+                    annotated_landmarks.append((hamming_distance, landmark))
+
+        # Sort the annotated landmarks and filter using Lowe's ratio.
+        annotated_landmarks.sort(key=lambda tup: tup[0])
+        if len(annotated_landmarks) > 1:
+            fst = annotated_landmarks[0][0]
+            snd = annotated_landmarks[1][0]
+
+            if fst < snd * 0.8:
+                print(
+                    f'index={feature_index} is matched using Lowe. fst={fst}, snd={snd}')
