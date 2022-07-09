@@ -194,7 +194,7 @@ def project_points_opt_6dof(image_points: np.ndarray, world_points: np.ndarray,
         px = project_point(projection_mat, xyz)
         err.append(np.linalg.norm(px - image_points[index]))
 
-    print(
-        f'project_points_opt_6dof. sum(err)={np.sum(err)}, mean(err)={np.mean(err)}, max(err)={np.max(err)}')
+    # print(
+    #    f'project_points_opt_6dof. sum(err)={np.sum(err)}, mean(err)={np.mean(err)}, max(err)={np.max(err)}')
 
     return err

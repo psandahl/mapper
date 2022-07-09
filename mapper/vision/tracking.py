@@ -241,12 +241,12 @@ def landmark_pose_estimation(frame_id: int,
         # Sort the annotated landmarks and filter using Lowe's ratio.
         annotated_landmarks.sort(key=lambda tup: tup[0])
         if len(annotated_landmarks) > 1:
-            best = annotated_landmarks[0][0]
-            snd = annotated_landmarks[1][0]
+            hamming_0, landmark_0 = annotated_landmarks[0]
+            hamming_1, _ = annotated_landmarks[1]
 
-            if best < snd * 0.8:
+            if hamming_0 < hamming_1 * 0.8:
                 image_points.append(feature_px)
-                world_points.append(landmark.get_xyz())
+                world_points.append(landmark_0.get_xyz())
 
                 landmark.mark_use(frame_id)
 
@@ -256,4 +256,5 @@ def landmark_pose_estimation(frame_id: int,
         f = functools.partial(trf.project_points_opt_6dof,
                               image_points, world_points, intrinsic_mat, pose)
         result = least_squares(f, np.zeros(6), method='lm')
-        print(f'success={result.success}')
+        if result.success:
+            print(f'adjustment={result.x}')
