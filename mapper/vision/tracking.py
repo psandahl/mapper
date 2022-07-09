@@ -257,4 +257,10 @@ def landmark_pose_estimation(frame_id: int,
                               image_points, world_points, intrinsic_mat, pose)
         result = least_squares(f, np.zeros(6), method='lm')
         if result.success:
-            print(f'adjustment={result.x}')
+            R, _ = cv.Rodrigues(result.x[:3])
+            t = result.x[3:]
+            return mat.pose_matrix(R, t)
+
+    print('Warning: landmark pose estimation failed to produce an estimation')
+
+    return mat.pose_matrix(np.eye(3, 3, dtype=np.float64), np.zeros(3))
