@@ -20,6 +20,10 @@ class Landmark():
     def get_xyz(self) -> np.ndarray:
         return self.xyz
 
+    def mark_use(self, frame_id: int) -> None:
+        self.use_count += 1
+        self.latest_frame_used = frame_id
+
     def get_descriptor(self):
         return self.frame_0['descriptor']
 

@@ -51,7 +51,7 @@ class LandmarkHashGrid():
                     self.hash_grid[grid_index].append((px, landmark))
 
         print(
-            f'landmark hash grid. From {len(landmarks)} landmarks, {cnt} are used')
+            f'landmark hash grid. From {len(landmarks)} landmarks, {cnt} are stored')
 
     def get_landmarks(self, circle: tuple) -> list:
         """
@@ -190,13 +190,11 @@ def visual_pose_prediction(match: dict, intrinsic_mat: np.ndarray, scale: float 
     return (mat.pose_matrix(R, t.flatten() * scale), match1)
 
 
-# def squared_distance(px0, px1) -> float:
-
-
-def landmark_pose_estimation(landmarks: list, descriptor_pair: tuple,
+def landmark_pose_estimation(frame_id: int,
+                             landmarks: list, descriptor_pair: tuple,
                              intrinsic_mat: np.array, pose: np.ndarray,
                              image: np.ndarray,
-                             radius: int = 80) -> None:
+                             radius: int = 60) -> None:
     assert isinstance(landmarks, list)
     assert isinstance(descriptor_pair, tuple)
     assert len(descriptor_pair) == 2
@@ -207,22 +205,24 @@ def landmark_pose_estimation(landmarks: list, descriptor_pair: tuple,
     assert im.is_image(image)
     assert im.num_channels(image) == 1
 
-    hamming_threshold = 100
+    hamming_threshold = 60
 
     sq_radius = radius ** 2
 
     hash_grid = LandmarkHashGrid(
         landmarks, intrinsic_mat, pose, im.image_size(image))
 
+    image_points = list()
+    world_points = list()
+
     # Match the feature descriptors with landmarks in the same image region.
     features, descriptors = descriptor_pair
-    print(f'Processing {len(features)} features ...')
     for feature_index, feature in enumerate(features):
         descriptor = descriptors[feature_index]
         feature_px = np.array(feature.pt)
 
+        # Annotate landmarks with hamming distance to feature.
         annotated_landmarks = list()
-
         landmarks = hash_grid.get_landmarks(
             (im.to_cv_point(feature_px), radius))
         for landmark_px, landmark in landmarks:
@@ -239,9 +239,14 @@ def landmark_pose_estimation(landmarks: list, descriptor_pair: tuple,
         # Sort the annotated landmarks and filter using Lowe's ratio.
         annotated_landmarks.sort(key=lambda tup: tup[0])
         if len(annotated_landmarks) > 1:
-            fst = annotated_landmarks[0][0]
+            best = annotated_landmarks[0][0]
             snd = annotated_landmarks[1][0]
 
-            if fst < snd * 0.8:
-                print(
-                    f'index={feature_index} is matched using Lowe. fst={fst}, snd={snd}')
+            if best < snd * 0.8:
+                image_points.append(feature_px)
+                world_points.append(landmark.get_xyz())
+
+                landmark.mark_use(frame_id)
+
+    print(
+        f'landmark pose estimation. Frame id={frame_id}. Selected point pairs={len(image_points)}')

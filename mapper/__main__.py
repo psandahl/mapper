@@ -188,7 +188,8 @@ def tracking_and_mapping(data_dir: str, cheat_frames: int = 1) -> None:
                                    pose_matches[-1],
                                    landmarks)
 
-                trk.landmark_pose_estimation(landmarks, frame_descriptor_pair,
+                trk.landmark_pose_estimation(frame_id, landmarks,
+                                             frame_descriptor_pair,
                                              instrinsic_matrix, pose, image)
 
             # Visualize stuff.
