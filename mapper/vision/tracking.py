@@ -255,11 +255,26 @@ def landmark_pose_estimation(frame_id: int,
     if len(image_points) > 8:
         f = functools.partial(trf.project_points_opt_6dof,
                               image_points, world_points, intrinsic_mat, pose)
+        initial_err = f(np.zeros(6))
+        init_min = np.min(initial_err)
+        init_mean = np.mean(initial_err)
+        init_max = np.max(initial_err)
+        print(
+            f' pose estimation - initial. min={init_min:.2f}, max={init_max:.2f}, mean={init_mean:.2f}')
+
         result = least_squares(f, np.zeros(6), method='lm')
         if result.success:
+            final_min = np.min(result.fun)
+            final_mean = np.mean(result.fun)
+            final_max = np.max(result.fun)
+            print(
+                f' pose estimation - final. min={final_min:.2f}, max={final_max:.2f}, mean={final_mean:.2f}')
+
             R, _ = cv.Rodrigues(result.x[:3])
             t = result.x[3:]
             return mat.pose_matrix(R, t)
+        else:
+            print(f" LM termination reason='{result.message}'")
 
     print('Warning: landmark pose estimation failed to produce an estimation')
 

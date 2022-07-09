@@ -118,8 +118,8 @@ def tracking(data_dir: str) -> None:
     panel.destroy_window()
 
 
-def tracking_and_mapping(data_dir: str, cheat_frames: int = 1) -> None:
-    kp.configure_keypoint(kp.KeypointType.AKAZE)
+def tracking_and_mapping(data_dir: str, cheat_frames: int = 5) -> None:
+    kp.configure_keypoint(kp.KeypointType.AGAST)
 
     data_extent = misc.read_2d_box_from_3x4_matrices(
         os.path.join(data_dir, 'poses.txt'))
@@ -188,9 +188,11 @@ def tracking_and_mapping(data_dir: str, cheat_frames: int = 1) -> None:
                                    pose_matches[-1],
                                    landmarks)
 
-                trk.landmark_pose_estimation(frame_id, landmarks,
-                                             frame_descriptor_pair,
-                                             instrinsic_matrix, pose, image)
+                rel_pose = trk.landmark_pose_estimation(frame_id, landmarks,
+                                                        frame_descriptor_pair,
+                                                        instrinsic_matrix, pose, image)
+                pose = trf.change_pose(pose, rel_pose)
+                print_pose_comparision('estimation', pose, gt_pose)
 
             # Visualize stuff.
             panel.set_caption(f'frame={frame_id}')
