@@ -161,3 +161,40 @@ def project_point(projection_mat: np.ndarray, xyz: np.ndarray) -> np.ndarray:
     px /= px[2]
 
     return px[:2]
+
+
+def project_points_opt_6dof(image_points: np.ndarray, world_points: np.ndarray,
+                            intrinsic_mat: np.ndarray, pose: np.ndarray,
+                            delta: np.ndarray):
+    """
+    Projection function to be used for optimization of 6DoF camera pose.
+    """
+    assert isinstance(image_points, list)
+    assert isinstance(world_points, list)
+    assert len(image_points) == len(world_points)
+    assert isinstance(intrinsic_mat, np.ndarray)
+    assert intrinsic_mat.shape == (3, 3)
+    assert isinstance(pose, np.ndarray)
+    assert pose.shape == (3, 4)
+    assert isinstance(delta, np.ndarray)
+    assert delta.shape == (6,)
+
+    R, _ = cv.Rodrigues(delta[:3])
+    t = delta[3:]
+
+    delta_pose = mat.pose_matrix(R, t)
+    full_pose = change_pose(pose, delta_pose)
+
+    R, t = mat.decomp_pose_matrix(full_pose)
+    extrinsic_mat = mat.extrinsic_matrix(R, t)
+    projection_mat = mat.projection_matrix(intrinsic_mat, extrinsic_mat)
+
+    err = list()
+    for index, xyz in enumerate(world_points):
+        px = project_point(projection_mat, xyz)
+        err.append(np.linalg.norm(px - image_points[index]))
+
+    print(
+        f'project_points_opt_6dof. sum(err)={np.sum(err)}, mean(err)={np.mean(err)}, max(err)={np.max(err)}')
+
+    return err

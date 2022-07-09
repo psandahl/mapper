@@ -1,6 +1,8 @@
 import numpy as np
+from scipy.optimize import least_squares
 import cv2 as cv
 
+import functools
 import itertools
 
 import mapper.vision.image as im
@@ -250,3 +252,8 @@ def landmark_pose_estimation(frame_id: int,
 
     print(
         f'landmark pose estimation. Frame id={frame_id}. Selected point pairs={len(image_points)}')
+    if len(image_points) > 8:
+        f = functools.partial(trf.project_points_opt_6dof,
+                              image_points, world_points, intrinsic_mat, pose)
+        result = least_squares(f, np.zeros(6), method='lm')
+        print(f'success={result.success}')
