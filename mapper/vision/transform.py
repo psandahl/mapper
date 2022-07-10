@@ -1,6 +1,8 @@
 import cv2 as cv
 import numpy as np
 
+import random
+
 import mapper.vision.matrix as mat
 
 
@@ -163,9 +165,77 @@ def project_point(projection_mat: np.ndarray, xyz: np.ndarray) -> np.ndarray:
     return px[:2]
 
 
+def select_points_for_pose(image_points: np.ndarray, world_points: np.ndarray,
+                           intrinsic_mat: np.ndarray) -> tuple:
+    assert isinstance(image_points, list)
+    assert isinstance(world_points, list)
+    assert len(image_points) > 3
+    assert len(image_points) == len(world_points)
+    assert isinstance(intrinsic_mat, np.ndarray)
+    assert intrinsic_mat.shape == (3, 3)
+
+    indices = list(range(0, len(image_points)))
+
+    inliers = list()
+    current = list()
+
+    max_iter = 100
+    error_threshold = 0.25
+    for iter in range(0, max_iter):
+        current.clear()
+
+        # Select points.
+        i_0, i_1, i_2 = random.sample(indices, 3)
+        w_points = np.array(
+            [world_points[i_0], world_points[i_1], world_points[i_2]])
+        i_points = np.array(
+            [image_points[i_0], image_points[i_1], image_points[i_2]])
+
+        # Solve for P3P, and select the solution with least error.
+        solutions, rvecs, tvecs = cv.solveP3P(
+            w_points, i_points, intrinsic_mat, None, cv.SOLVEPNP_AP3P)
+
+        if solutions == 0:
+            # No solutions. Try next iteration.
+            continue
+
+        rvec, tvec = rvecs[0], tvecs[0]
+
+        # Create a projection matrix.
+        R, _ = cv.Rodrigues(rvec)
+        extrinsic_mat = np.hstack((R, tvec))
+        projection_mat = mat.projection_matrix(intrinsic_mat, extrinsic_mat)
+
+        # Project all points to identify inliers.
+        for index, xyz in enumerate(world_points):
+            px = project_point(projection_mat, xyz)
+            error = np.linalg.norm(px - image_points[index])
+            if error < error_threshold:
+                current.append(index)
+
+        if len(current) > len(inliers):
+            # Swap lists if current is larger.
+            inliers, current = current, inliers
+
+        if len(inliers) == len(image_points):
+            # Cannot be more inliers.
+            break
+
+    print(
+        f'select points for pose (RANSAC): from {len(image_points)} pairs, {len(inliers)} are selected')
+
+    selected_image_points = list()
+    selected_world_points = list()
+    for inlier in inliers:
+        selected_image_points.append(image_points[inlier])
+        selected_world_points.append(world_points[inlier])
+
+    return selected_image_points, selected_world_points
+
+
 def project_points_opt_6dof(image_points: np.ndarray, world_points: np.ndarray,
                             intrinsic_mat: np.ndarray, pose: np.ndarray,
-                            delta: np.ndarray):
+                            delta: np.ndarray) -> list:
     """
     Projection function to be used for optimization of 6DoF camera pose.
     """

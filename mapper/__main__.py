@@ -119,7 +119,7 @@ def tracking(data_dir: str) -> None:
 
 
 def tracking_and_mapping(data_dir: str, cheat_frames: int = 5) -> None:
-    kp.configure_keypoint(kp.KeypointType.AGAST)
+    kp.configure_keypoint(kp.KeypointType.AKAZE)
 
     data_extent = misc.read_2d_box_from_3x4_matrices(
         os.path.join(data_dir, 'poses.txt'))
