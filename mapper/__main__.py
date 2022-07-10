@@ -138,6 +138,8 @@ def tracking_and_mapping(data_dir: str, cheat_frames: int = 5) -> None:
     for image, proj_matrix, gt_pose in kd.KittiData(data_dir):
         frame_id = len(images)
 
+        new_landmarks = list()
+
         print(f'Processing frame={frame_id}')
 
         # Unpack the intrinsic matrix.
@@ -182,11 +184,11 @@ def tracking_and_mapping(data_dir: str, cheat_frames: int = 5) -> None:
             # and do a better estimation for the current frame using the map.
             if len(images) > 1:
                 # Note: This requires adjacent frames atm.
-                map.sparse_mapping(frame_id,
-                                   est_poses[-2], intrinsic_matrices[-2], images[-2],
-                                   est_poses[-1], intrinsic_matrices[-1], images[-1],
-                                   pose_matches[-1],
-                                   landmarks)
+                new_landmarks = map.sparse_mapping(frame_id,
+                                                   est_poses[-2], intrinsic_matrices[-2], images[-2],
+                                                   est_poses[-1], intrinsic_matrices[-1], images[-1],
+                                                   pose_matches[-1])
+                map.add_new_landmarks(landmarks, new_landmarks)
 
                 rel_pose = trk.landmark_pose_estimation(frame_id, landmarks,
                                                         frame_descriptor_pair,
@@ -208,7 +210,7 @@ def tracking_and_mapping(data_dir: str, cheat_frames: int = 5) -> None:
 
             panel.add_camera(gt_pose)
             panel.add_camera(pose, color=(255, 0, 0))
-            panel.add_landmarks(landmarks)
+            # panel.add_landmarks(new_landmarks)
             panel.update()
 
             # Update lists with pose match with previous frame and the pose.
@@ -229,6 +231,9 @@ def tracking_and_mapping(data_dir: str, cheat_frames: int = 5) -> None:
         descriptor_pairs.append(frame_descriptor_pair)
         gt_poses.append(gt_pose)
 
+        # Manage landmarks.
+        landmarks = map.manage_landmarks(frame_id, landmarks)
+
     print('Track is complete. ENTER to quit')
     sys.stdin.read(1)
 
@@ -242,8 +247,8 @@ def main():
     # tracking('C:\\Users\\patri\\kitti\\parking\\parking')
 
     # tracking_and_mapping('C:\\Users\\patri\\kitti\\KITTI_sequence_1')
-    tracking_and_mapping('C:\\Users\\patri\\kitti\\KITTI_sequence_2')
-    # tracking_and_mapping('C:\\Users\\patri\\kitti\\KITTI_sequence_long_1')
+    # tracking_and_mapping('C:\\Users\\patri\\kitti\\KITTI_sequence_2')
+    tracking_and_mapping('C:\\Users\\patri\\kitti\\KITTI_sequence_long_1')
     # tracking_and_mapping('C:\\Users\\patri\\kitti\\parking\\parking')
 
 

@@ -46,6 +46,26 @@ class Landmark():
         return abs(self.frame_0['intensity'] - self.frame_1['intensity'])
 
 
+def add_new_landmarks(landmarks: list, new_landmarks: list) -> None:
+    assert isinstance(landmarks, list)
+    assert isinstance(new_landmarks, list)
+
+    for landmark in new_landmarks:
+        landmarks.append(landmark)
+
+
+def manage_landmarks(frame_id: int, landmarks: list) -> list:
+    keep = list()
+
+    for landmark in landmarks:
+        if landmark.use_count > 5 or (frame_id - landmark.frame_created) < 10:
+            keep.append(landmark)
+
+    print(f'manage landmarks. in={len(landmarks)}, out={len(keep)}')
+
+    return keep
+
+
 def sparse_mapping(frame_id: int,
                    pose_0: np.ndarray,
                    intrinsic_0: np.ndarray,
@@ -53,8 +73,7 @@ def sparse_mapping(frame_id: int,
                    pose_1: np.ndarray,
                    intrinsic_1: np.ndarray,
                    image_1: np.ndarray,
-                   match: dict,
-                   landmarks: list) -> None:
+                   match: dict) -> list:
     """
     Perform sparse mapping through triangulation.
 
@@ -66,11 +85,10 @@ def sparse_mapping(frame_id: int,
         pose_1: The pose matrix for frame 1.
         instrinsic_1: The intrinsic matrix for frame 1.
         image_1: The image for frame 1.
-        match: The match dictionary between frame 0 and frame 1.
-        landmarks: Where to store new landmarks.
+        match: The match dictionary between frame 0 and frame 1.        
 
     Returns:
-        None
+        New landmarks.
     """
     assert isinstance(frame_id, int)
     assert frame_id > 0
@@ -85,7 +103,6 @@ def sparse_mapping(frame_id: int,
     assert intrinsic_1.shape == (3, 3)
     assert im.is_image(image_1)
     assert isinstance(match, dict)
-    assert isinstance(landmarks, list)
     assert len(match['train_keypoints']) == len(match['query_keypoints'])
 
     train_id = match['train_id']
@@ -114,6 +131,8 @@ def sparse_mapping(frame_id: int,
     desc_0 = match['train_descriptors']
     desc_1 = match['query_descriptors']
 
+    landmarks = list()
+
     inliers = 0
     for index, xyz in enumerate(world_points):
         if trf.infront_of_camera(extrinsic_0, xyz) and trf.infront_of_camera(extrinsic_1, xyz):
@@ -141,3 +160,5 @@ def sparse_mapping(frame_id: int,
             inliers += 1
 
     print(f' mapping ratio={inliers}/{num_input_points}')
+
+    return landmarks

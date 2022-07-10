@@ -53,8 +53,6 @@ class Panel():
         self.track_image_rvec = rvec
         self.track_image_tvec = tvec
 
-        self.num_landmarks = 0
-
         # Draw lines to mark the data extent.
         self.draw_track_extent(data_extent)
 
@@ -193,7 +191,7 @@ class Panel():
         cv.line(self.track_image, points[4], points[1], color)
 
     def add_landmarks(self, landmarks: list) -> None:
-        for landmark in landmarks[self.num_landmarks:len(landmarks)]:
+        for landmark in landmarks:
             px, _ = cv.projectPoints(np.array(landmark.get_xyz()),
                                      self.track_image_rvec,
                                      self.track_image_tvec,
@@ -205,5 +203,3 @@ class Panel():
                 u, v = px.astype(int)
                 self.track_image[v, u] = (
                     intensity, intensity, intensity)
-
-        self.num_landmarks = len(landmarks)
