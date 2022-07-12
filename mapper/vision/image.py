@@ -186,7 +186,7 @@ def draw_features(image: cv.Mat, features: np.ndarray, color: tuple = (0, 255, 0
 
 def draw_matching_features(image0: cv.Mat, features0: np.ndarray,
                            image1: cv.Mat, features1: np.ndarray,
-                           step: int = 1) -> cv.Mat:
+                           step: int = 1) -> np.ndarray:
     """
     Draw matching features between two images.
 

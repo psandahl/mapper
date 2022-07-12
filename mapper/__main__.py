@@ -8,6 +8,8 @@ import mapper.util.kittidata as kd
 import mapper.util.misc as misc
 from mapper.util.panel import Panel
 
+import mapper.vision.flow as flow
+import mapper.vision.image as im
 import mapper.vision.matrix as mat
 import mapper.vision.keypoint as kp
 import mapper.vision.mapping as map
@@ -37,7 +39,26 @@ def pose_distance(pose_0: np.ndarray, pose_1: np.ndarray) -> float:
     return np.linalg.norm(t_1 - t_0)
 
 
-def tracking(data_dir: str) -> None:
+def plk_tracking(data_dir: str) -> None:
+    img0 = cv.imread(os.path.join(
+        data_dir, 'image_l/000000.png'), cv.IMREAD_GRAYSCALE)
+    img1 = cv.imread(os.path.join(
+        data_dir, 'image_l/000003.png'), cv.IMREAD_GRAYSCALE)
+
+    points0 = flow.points_to_track(img0)
+    match0, match1 = flow.sparse_optical_flow(img0, img1, points0)
+    print(len(match0))
+
+    img_match = im.draw_matching_features(im.visualization_image(img0), match0,
+                                          im.visualization_image(img1), match1, step=7)
+
+    cv.imshow('match', img_match)
+    cv.waitKey(0)
+
+    cv.destroyAllWindows()
+
+
+def feature_tracking(data_dir: str) -> None:
     kp.configure_keypoint(kp.KeypointType.AKAZE)
 
     data_extent = misc.read_2d_box_from_3x4_matrices(
@@ -241,14 +262,16 @@ def tracking_and_mapping(data_dir: str, cheat_frames: int = 5) -> None:
 
 
 def main():
-    # tracking('C:\\Users\\patri\\kitti\\KITTI_sequence_1')
-    # tracking('C:\\Users\\patri\\kitti\\KITTI_sequence_2')
-    # tracking('C:\\Users\\patri\\kitti\\KITTI_sequence_long_1')
-    # tracking('C:\\Users\\patri\\kitti\\parking\\parking')
+    plk_tracking('C:\\Users\\patri\\kitti\\KITTI_sequence_2')
+
+    # feature_tracking('C:\\Users\\patri\\kitti\\KITTI_sequence_1')
+    # feature_tracking('C:\\Users\\patri\\kitti\\KITTI_sequence_2')
+    # feature_tracking('C:\\Users\\patri\\kitti\\KITTI_sequence_long_1')
+    # feature_tracking('C:\\Users\\patri\\kitti\\parking\\parking')
 
     # tracking_and_mapping('C:\\Users\\patri\\kitti\\KITTI_sequence_1')
     # tracking_and_mapping('C:\\Users\\patri\\kitti\\KITTI_sequence_2')
-    tracking_and_mapping('C:\\Users\\patri\\kitti\\KITTI_sequence_long_1')
+    # tracking_and_mapping('C:\\Users\\patri\\kitti\\KITTI_sequence_long_1')
     # tracking_and_mapping('C:\\Users\\patri\\kitti\\parking\\parking')
 
 
