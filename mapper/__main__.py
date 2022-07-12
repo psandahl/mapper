@@ -40,22 +40,75 @@ def pose_distance(pose_0: np.ndarray, pose_1: np.ndarray) -> float:
 
 
 def plk_tracking(data_dir: str) -> None:
-    img0 = cv.imread(os.path.join(
-        data_dir, 'image_l/000000.png'), cv.IMREAD_GRAYSCALE)
-    img1 = cv.imread(os.path.join(
-        data_dir, 'image_l/000003.png'), cv.IMREAD_GRAYSCALE)
+    data_extent = misc.read_2d_box_from_3x4_matrices(
+        os.path.join(data_dir, 'poses.txt'))
 
-    points0 = flow.points_to_track(img0)
-    match0, match1 = flow.sparse_optical_flow(img0, img1, points0)
-    print(len(match0))
+    panel = Panel(data_extent)
 
-    img_match = im.draw_matching_features(im.visualization_image(img0), match0,
-                                          im.visualization_image(img1), match1, step=7)
+    images = list()
+    intrinsic_matrices = list()
+    gt_poses = list()
+    est_poses = list()
 
-    cv.imshow('match', img_match)
-    cv.waitKey(0)
+    # Iterate through dataset.
+    for image, proj_matrix, gt_pose in kd.KittiData(data_dir):
+        frame_id = len(images)
 
-    cv.destroyAllWindows()
+        print(f'Processing frame={frame_id}')
+
+        # Unpack the intrinsic matrix.
+        intrinsic_matrix, _ = mat.decomp_pose_matrix(proj_matrix)
+
+        if frame_id > 0:
+            # Do stuff.
+            prev_image = images[-1]
+            prev_pose = est_poses[-1]
+
+            train_points = flow.points_to_track(prev_image)
+            train_match, query_match = flow.sparse_optical_flow(
+                prev_image, image, train_points)
+
+            print(
+                f"Number of matching points={len(train_match)}")
+            rel_pose, pose_train_match, pose_query_match = trk.visual_pose_prediction_plk(
+                train_match, query_match, intrinsic_matrix)
+            print(
+                f"Number of pose prediction inliers={len(pose_train_match)}")
+
+            pose = trf.change_pose(prev_pose, rel_pose)
+            est_poses.append(pose)
+
+            print_pose_comparision('prediction', pose, gt_pose)
+
+            panel.set_caption(f'frame={frame_id}')
+            panel.set_pose_matches(prev_image,
+                                   train_match,
+                                   np.array(pose_train_match),
+                                   image,
+                                   query_match,
+                                   np.array(pose_query_match)
+                                   )
+
+            panel.add_camera(gt_pose)
+            panel.add_camera(pose, color=(255, 0, 0))
+            panel.update()
+
+            key = cv.waitKey(15)
+            if key == 27:
+                break
+        else:
+            # This is the first frame. Use the ground truth pose.
+            est_poses.append(gt_pose)
+
+        # Save stuff.
+        images.append(image)
+        intrinsic_matrices.append(intrinsic_matrix)
+        gt_poses.append(gt_pose)
+
+    print('Track is complete. Press ENTER to quit')
+    sys.stdin.read(1)
+
+    panel.destroy_window()
 
 
 def feature_tracking(data_dir: str) -> None:
@@ -95,8 +148,8 @@ def feature_tracking(data_dir: str) -> None:
                              frame_descriptor_pair, frame_id)
             print(
                 f"Number of matching keypoints={len(match['query_keypoints'])}")
-            rel_pose, pose_match = trk.visual_pose_prediction(match,
-                                                              instrinsic_matrix)
+            rel_pose, pose_match = trk.visual_pose_prediction_kpt(match,
+                                                                  instrinsic_matrix)
             print(
                 f"Number of pose prediction inliers={len(pose_match['query_keypoints'])}")
 
@@ -120,7 +173,7 @@ def feature_tracking(data_dir: str) -> None:
             panel.add_camera(pose, color=(255, 0, 0))
             panel.update()
 
-            key = cv.waitKey(30)
+            key = cv.waitKey(15)
             if key == 27:
                 break
         else:
@@ -190,9 +243,9 @@ def tracking_and_mapping(data_dir: str, cheat_frames: int = 5) -> None:
                 print(f'Cheating with scale from GT={scale}')
 
             # Using the match, predict the pose for this frame.
-            rel_pose, pose_match = trk.visual_pose_prediction(match,
-                                                              instrinsic_matrix,
-                                                              scale=scale)
+            rel_pose, pose_match = trk.visual_pose_prediction_kpt(match,
+                                                                  instrinsic_matrix,
+                                                                  scale=scale)
 
             print(
                 f"Number of pose prediction inliers={len(pose_match['query_keypoints'])}")
@@ -262,7 +315,10 @@ def tracking_and_mapping(data_dir: str, cheat_frames: int = 5) -> None:
 
 
 def main():
-    plk_tracking('C:\\Users\\patri\\kitti\\KITTI_sequence_2')
+    # plk_tracking('C:\\Users\\patri\\kitti\\KITTI_sequence_1')
+    # plk_tracking('C:\\Users\\patri\\kitti\\KITTI_sequence_2')
+    plk_tracking('C:\\Users\\patri\\kitti\\KITTI_sequence_long_1')
+    # plk_tracking('C:\\Users\\patri\\kitti\\parking\\parking')
 
     # feature_tracking('C:\\Users\\patri\\kitti\\KITTI_sequence_1')
     # feature_tracking('C:\\Users\\patri\\kitti\\KITTI_sequence_2')

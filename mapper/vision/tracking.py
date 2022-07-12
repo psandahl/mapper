@@ -142,7 +142,34 @@ class LandmarkHashGrid():
         return ((min_x, min_y), (max_x, max_y))
 
 
-def visual_pose_prediction(match: dict, intrinsic_mat: np.ndarray, scale: float = 1.0) -> tuple:
+def visual_pose_prediction_plk(train: np.ndarray, query: np.ndarray,
+                               intrinsic_mat: np.ndarray, scale: float = 1.0) -> tuple:
+    assert isinstance(train, np.ndarray)
+    assert isinstance(query, np.ndarray)
+    assert len(train) == len(query)
+    assert isinstance(intrinsic_mat, np.ndarray)
+    assert intrinsic_mat.shape == (3, 3)
+
+    E, inliers = cv.findEssentialMat(np.array(train),
+                                     np.array(query),
+                                     intrinsic_mat,
+                                     cv.RANSAC, 0.999, 0.1)
+    inliers = inliers.flatten()
+
+    match_train = list()
+    match_query = list()
+    for index, value in enumerate(inliers):
+        if value == 1:
+            match_train.append(train[index])
+            match_query.append(query[index])
+
+    _, R, t, _ = cv.recoverPose(E, np.array(match_train),
+                                np.array(match_query), intrinsic_mat)
+
+    return (mat.pose_matrix(R, t.flatten() * scale), match_train, match_query)
+
+
+def visual_pose_prediction_kpt(match: dict, intrinsic_mat: np.ndarray, scale: float = 1.0) -> tuple:
     """
     From matched keypoints, do a pose predition.
 
