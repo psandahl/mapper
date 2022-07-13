@@ -55,13 +55,24 @@ def sparse_optical_flow(image0: np.ndarray, image1: np.ndarray, points0: np.ndar
     p_1_0, st_1_0, _ = cv.calcOpticalFlowPyrLK(
         image1, image0, p_0_1, None, **args)
 
+    (w, h) = im.image_size(image0)
+
     match0 = list()
     match1 = list()
     for index, point in enumerate(points0):
         status_ok = st_0_1[index] == 1 and st_1_0[index] == 1
+
         if status_ok and np.linalg.norm(point - p_1_0[index]) < 1.0:
+
+            other_point = np.clip(p_0_1[index], (0.0, 0.0), (w - 1, h - 1))
+
+            # i_0 = im.interpolate_pixel(image0, point[0], point[1])
+            # i_1 = im.interpolate_pixel(image1, other_point[0], other_point[1])
+
+            # print(abs(i_0 - i_1))
+
             match0.append(point)
-            match1.append(p_0_1[index])
+            match1.append(other_point)
 
     return np.array(match0), np.array(match1)
 
