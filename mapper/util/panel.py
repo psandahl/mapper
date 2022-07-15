@@ -4,9 +4,9 @@ import numpy as np
 import math
 import random
 
+import mapper.vision.epipolar as epi
 import mapper.vision.image as im
 import mapper.vision.matrix as mat
-import mapper.vision.transform as trf
 import mapper.vision.utils as utils
 
 
@@ -69,7 +69,8 @@ class Panel():
                          train_pose_points: np.ndarray,
                          query_image: np.ndarray,
                          query_points: np.ndarray,
-                         query_pose_points: np.ndarray) -> None:
+                         query_pose_points: np.ndarray,
+                         F: np.ndarray = None) -> None:
         assert im.is_image(
             train_image), 'Train image is assumed to be valid image'
         assert im.is_image(
@@ -83,6 +84,8 @@ class Panel():
         im.draw_features(train_image_vis, train_points)
         im.draw_features(query_image_vis, query_points)
 
+        w, _ = im.image_size(query_image_vis)
+
         for index, train_point in enumerate(train_pose_points):
             query_point = query_pose_points[index]
             color = (random.randint(0, 255), random.randint(
@@ -92,6 +95,11 @@ class Panel():
                 train_point), color=color)
             cv.drawMarker(query_image_vis, im.to_cv_point(
                 query_point), color=color)
+
+            if not F is None:
+                line = epi.epipolar_line(F, train_point)
+                p0, p1 = epi.plot_line(line, 0, w - 1)
+                cv.line(query_image_vis, p0, p1, color=color)
 
         self.pose_matches_image = np.hstack(
             (train_image_vis, query_image_vis))

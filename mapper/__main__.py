@@ -70,7 +70,7 @@ def plk_tracking(data_dir: str) -> None:
 
             print(
                 f"Number of matching points={len(train_match)}")
-            rel_pose, pose_train_match, pose_query_match = trk.visual_pose_prediction_plk(
+            rel_pose, pose_train_match, pose_query_match, E = trk.visual_pose_prediction_plk(
                 train_match, query_match, intrinsic_matrix)
             print(
                 f"Number of pose prediction inliers={len(pose_train_match)}")
@@ -80,20 +80,23 @@ def plk_tracking(data_dir: str) -> None:
 
             print_pose_comparision('prediction', pose, gt_pose)
 
+            F = mat.fundamental_matrix(E, intrinsic_matrix)
+
             panel.set_caption(f'frame={frame_id}')
             panel.set_pose_matches(prev_image,
                                    train_match,
                                    np.array(pose_train_match),
                                    image,
                                    query_match,
-                                   np.array(pose_query_match)
+                                   np.array(pose_query_match),
+                                   F
                                    )
 
             panel.add_camera(gt_pose)
             panel.add_camera(pose, color=(255, 0, 0))
             panel.update()
 
-            key = cv.waitKey(15)
+            key = cv.waitKey(0)
             if key == 27:
                 break
         else:
@@ -316,9 +319,9 @@ def tracking_and_mapping(data_dir: str, cheat_frames: int = 5) -> None:
 
 def main():
     # plk_tracking('C:\\Users\\patri\\kitti\\KITTI_sequence_1')
-    plk_tracking('C:\\Users\\patri\\kitti\\KITTI_sequence_2')
+    # plk_tracking('C:\\Users\\patri\\kitti\\KITTI_sequence_2')
     # plk_tracking('C:\\Users\\patri\\kitti\\KITTI_sequence_long_1')
-    # plk_tracking('C:\\Users\\patri\\kitti\\parking\\parking')
+    plk_tracking('C:\\Users\\patri\\kitti\\parking\\parking')
 
     # feature_tracking('C:\\Users\\patri\\kitti\\KITTI_sequence_1')
     # feature_tracking('C:\\Users\\patri\\kitti\\KITTI_sequence_2')

@@ -160,6 +160,27 @@ def decomp_homogeneous_matrix(mat: np.ndarray) -> np.ndarray:
     return mat[:3, :4].copy()
 
 
+def fundamental_matrix(E: np.ndarray, intrinsic_mat: np.ndarray) -> np.ndarray:
+    """
+    Create a fundamental matrix from essential matrix and intrinsic matrix.
+
+    Parameters:
+        E: Essential matrix.
+        intrinsic_mat: Intrinsic matrix.
+
+    Returns:
+        Fundamental matrix.
+    """
+    assert isinstance(E, np.ndarray)
+    assert E.shape == (3, 3)
+    assert isinstance(intrinsic_mat, np.ndarray)
+    assert intrinsic_mat.shape == (3, 3)
+
+    Kinv = np.linalg.inv(intrinsic_mat)
+
+    return Kinv.T @ E @ Kinv
+
+
 def intrinsic_matrix_35mm_film(focal_length: float, image_size: tuple) -> cv.Mat:
     """
     Helper function to compute an intrinsic matrix for a 35mm file (e.g. iphone Exif).

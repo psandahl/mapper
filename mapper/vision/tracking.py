@@ -166,7 +166,7 @@ def visual_pose_prediction_plk(train: np.ndarray, query: np.ndarray,
     _, R, t, _ = cv.recoverPose(E, np.array(match_train),
                                 np.array(match_query), intrinsic_mat)
 
-    return (mat.pose_matrix(R, t.flatten() * scale), match_train, match_query)
+    return (mat.pose_matrix(R, t.flatten() * scale), match_train, match_query, E)
 
 
 def visual_pose_prediction_kpt(match: dict, intrinsic_mat: np.ndarray, scale: float = 1.0) -> tuple:
