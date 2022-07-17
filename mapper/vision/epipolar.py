@@ -2,6 +2,8 @@ import numpy as np
 
 import math
 
+import mapper.vision.image as im
+
 
 def epipolar_line(F: np.ndarray, px: any) -> np.ndarray:
     """
@@ -114,3 +116,36 @@ def plot_line(line: np.ndarray, size: tuple) -> tuple:
     start, end = clamp_line_to_image(line, size)
 
     return np.round(start).astype(int), np.round(end).astype(int)
+
+
+def search_line(line: np.ndarray, center: any, train: np.ndarray, query: np.ndarray) -> tuple:
+    template = im.get_patch(train, center)
+    if template is None:
+        return None
+
+    start, end = clamp_line_to_image(line, im.image_size(query))
+
+    start = np.array(start)
+    end = np.array(end)
+    direction = end - start
+    full_len = np.linalg.norm(direction)
+
+    direction /= full_len
+
+    stride = 1.0
+    min_sad = 25 * 255.0
+    min_len = 0.0
+    curr_len = 0.0
+
+    while curr_len < full_len:
+        patch_center = start + direction * curr_len
+        patch = im.get_patch(query, patch_center)
+        if not patch is None:
+            sad = im.sad_patch(template, patch)
+            if sad < min_sad:
+                min_sad = sad
+                min_len = curr_len
+
+        curr_len += stride
+
+    return start + direction * min_len, min_sad

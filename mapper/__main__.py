@@ -8,8 +8,8 @@ import mapper.util.kittidata as kd
 import mapper.util.misc as misc
 from mapper.util.panel import Panel
 
+import mapper.vision.epipolar as epi
 import mapper.vision.flow as flow
-import mapper.vision.image as im
 import mapper.vision.matrix as mat
 import mapper.vision.keypoint as kp
 import mapper.vision.mapping as map
@@ -37,6 +37,102 @@ def pose_distance(pose_0: np.ndarray, pose_1: np.ndarray) -> float:
     _, t_1 = mat.decomp_pose_matrix(pose_1)
 
     return np.linalg.norm(t_1 - t_0)
+
+
+def test_epipolar_search(F, train_image, train_points, query_image, query_points):
+    distances = list()
+    for index, train_point in enumerate(train_points):
+        line = epi.epipolar_line(F, train_point)
+        result = epi.search_line(
+            line, train_point, train_image, query_image)
+        if not result is None:
+            found, error = result
+            distance = np.linalg.norm(found - query_points[index])
+            if distance > 10:
+                print(
+                    f'SAD={error} found={found} should be={query_points[index]}')
+
+            distances.append(distance)
+
+    print(
+        f'Max dist={np.max(distances)} min={np.min(distances)} mean={np.mean(distances)}')
+
+
+def plk_tracking_and_mapping(data_dir: str) -> None:
+    data_extent = misc.read_2d_box_from_3x4_matrices(
+        os.path.join(data_dir, 'poses.txt'))
+
+    panel = Panel(data_extent)
+
+    images = list()
+    intrinsic_matrices = list()
+    gt_poses = list()
+    est_poses = list()
+
+    # Iterate through dataset.
+    for image, proj_matrix, gt_pose in kd.KittiData(data_dir):
+        frame_id = len(images)
+
+        print(f'Processing frame={frame_id}')
+
+        # Unpack the intrinsic matrix.
+        intrinsic_matrix, _ = mat.decomp_pose_matrix(proj_matrix)
+
+        if frame_id > 0:
+            # Do stuff.
+            prev_image = images[-1]
+            prev_pose = est_poses[-1]
+
+            train_points = flow.points_to_track(prev_image)
+            train_match, query_match = flow.sparse_optical_flow(
+                prev_image, image, train_points)
+
+            print(
+                f"Number of matching points={len(train_match)}")
+            rel_pose, pose_train_match, pose_query_match, E = trk.visual_pose_prediction_plk(
+                train_match, query_match, intrinsic_matrix)
+            print(
+                f"Number of pose prediction inliers={len(pose_train_match)}")
+
+            pose = trf.change_pose(prev_pose, rel_pose)
+            est_poses.append(pose)
+
+            print_pose_comparision('prediction', pose, gt_pose)
+
+            F = mat.fundamental_matrix(E, intrinsic_matrix)
+            test_epipolar_search(
+                F, prev_image, pose_train_match, image, pose_query_match)
+
+            panel.set_caption(f'frame={frame_id}')
+            panel.set_pose_matches(prev_image,
+                                   train_match,
+                                   np.array(pose_train_match),
+                                   image,
+                                   query_match,
+                                   np.array(pose_query_match),
+                                   F
+                                   )
+
+            panel.add_camera(gt_pose)
+            panel.add_camera(pose, color=(255, 0, 0))
+            panel.update()
+
+            key = cv.waitKey(0)
+            if key == 27:
+                break
+        else:
+            # This is the first frame. Use the ground truth pose.
+            est_poses.append(gt_pose)
+
+        # Save stuff.
+        images.append(image)
+        intrinsic_matrices.append(intrinsic_matrix)
+        gt_poses.append(gt_pose)
+
+    print('Track is complete. Press ENTER to quit')
+    sys.stdin.read(1)
+
+    panel.destroy_window()
 
 
 def plk_tracking(data_dir: str) -> None:
@@ -318,8 +414,11 @@ def tracking_and_mapping(data_dir: str, cheat_frames: int = 5) -> None:
 
 
 def main():
+    plk_tracking_and_mapping('C:\\Users\\patri\\kitti\\KITTI_sequence_2')
+    # plk_tracking_and_mapping('C:\\Users\\patri\\kitti\\parking\\parking')
+
     # plk_tracking('C:\\Users\\patri\\kitti\\KITTI_sequence_1')
-    plk_tracking('C:\\Users\\patri\\kitti\\KITTI_sequence_2')
+    # plk_tracking('C:\\Users\\patri\\kitti\\KITTI_sequence_2')
     # plk_tracking('C:\\Users\\patri\\kitti\\KITTI_sequence_long_1')
     # plk_tracking('C:\\Users\\patri\\kitti\\parking\\parking')
 
