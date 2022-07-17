@@ -84,7 +84,7 @@ class Panel():
         im.draw_features(train_image_vis, train_points)
         im.draw_features(query_image_vis, query_points)
 
-        w, _ = im.image_size(query_image_vis)
+        image_size = im.image_size(query_image_vis)
 
         for index, train_point in enumerate(train_pose_points):
             query_point = query_pose_points[index]
@@ -98,7 +98,7 @@ class Panel():
 
             if not F is None:
                 line = epi.epipolar_line(F, train_point)
-                p0, p1 = epi.plot_line(line, 0, w - 1)
+                p0, p1 = epi.plot_line(line, image_size)
                 cv.line(query_image_vis, p0, p1, color=color)
 
         self.pose_matches_image = np.hstack(

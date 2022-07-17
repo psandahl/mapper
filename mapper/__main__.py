@@ -319,9 +319,9 @@ def tracking_and_mapping(data_dir: str, cheat_frames: int = 5) -> None:
 
 def main():
     # plk_tracking('C:\\Users\\patri\\kitti\\KITTI_sequence_1')
-    # plk_tracking('C:\\Users\\patri\\kitti\\KITTI_sequence_2')
+    plk_tracking('C:\\Users\\patri\\kitti\\KITTI_sequence_2')
     # plk_tracking('C:\\Users\\patri\\kitti\\KITTI_sequence_long_1')
-    plk_tracking('C:\\Users\\patri\\kitti\\parking\\parking')
+    # plk_tracking('C:\\Users\\patri\\kitti\\parking\\parking')
 
     # feature_tracking('C:\\Users\\patri\\kitti\\KITTI_sequence_1')
     # feature_tracking('C:\\Users\\patri\\kitti\\KITTI_sequence_2')

@@ -30,7 +30,7 @@ def epipolar_line(F: np.ndarray, px: any) -> np.ndarray:
 
 def line_y(line: np.ndarray, x: float) -> float:
     """
-    Get the y value for the x value on the line.
+    Get the y value for the given x value on the line.
 
     Parameters:
         line: A line.
@@ -39,7 +39,6 @@ def line_y(line: np.ndarray, x: float) -> float:
     Returns:
         The y value.
     """
-
     assert isinstance(line, np.ndarray)
     assert line.shape == (3,)
 
@@ -49,19 +48,69 @@ def line_y(line: np.ndarray, x: float) -> float:
     return -(a * x + c) / b
 
 
-def plot_line(line: np.ndarray, x0: float, x1: float) -> tuple:
+def line_x(line: np.ndarray, y: float) -> float:
     """
-    Get start and endpoints for a line. Truncated to ints to fit OpenCV.
+    Get the x value for the given y value on the line.
 
     Parameters:
         line: A line.
-        x0: First x value.
-        x1: Last x value.
+        y: The y value.
 
     Returns:
-        Two tuples, with first and last point in line respectively.
+        The x value.
     """
-    y0 = line_y(line, x0)
-    y1 = line_y(line, x1)
+    assert isinstance(line, np.ndarray)
+    assert line.shape == (3,)
 
-    return (int(x0), int(y0)), (int(x1), int(y1))
+    # ax + by + c = 0
+    a, b, c = line
+
+    return -(b * y + c) / a
+
+
+def clamp_point_to_image(line: np.ndarray, size: any, x: float) -> tuple:
+    """
+    Clamp a point to the border of an image. Selection is x.
+
+    Parameters:
+        line: A line.
+        size: The size of the image.
+        x: The ideal x value for the selection.
+
+    Returns:
+        A tuple (x, y) clamped to the image border.
+    """
+    assert isinstance(line, np.ndarray)
+    assert line.shape == (3,)
+    assert len(size) == 2
+    _, h = size
+
+    # Test: see if a plotted y fits along the image side.
+    y = line_y(line, x)
+    if y < 0.0:
+        # y must be clamped to zero.
+        x = line_x(line, 0)
+        return x, 0.0
+    elif y > h - 1.0:
+        # y must be clamped to h - 1
+        x = line_x(line, h - 1)
+        return x, h - 1
+    else:
+        return x, y
+
+
+def clamp_line_to_image(line: np.ndarray, size: tuple) -> tuple:
+    """
+    Clamp a line to the border of an image.
+    """
+    w, _ = size
+    return clamp_point_to_image(line, size, 0), clamp_point_to_image(line, size, w - 1)
+
+
+def plot_line(line: np.ndarray, size: tuple) -> tuple:
+    """
+    Clamp a line to the border of an image. Force integer typing (for OpenCV plot).
+    """
+    start, end = clamp_line_to_image(line, size)
+
+    return np.round(start).astype(int), np.round(end).astype(int)
