@@ -146,7 +146,6 @@ def visualization_image(image: cv.Mat) -> cv.Mat:
 def generate_features(image: cv.Mat, refine=True) -> np.ndarray:
     """
     Generate corner features in the given image.
-
     Parameters:
         image: Image to generate features for.
 
@@ -270,7 +269,7 @@ def gray_flow_visualization_image(flow: cv.Mat) -> cv.Mat:
     return cv.normalize(viz, viz, 1.0, 0.0, cv.NORM_MINMAX)
 
 
-def interpolate_pixel(image: cv.Mat, x: float, y: float) -> any:
+def interpolate_pixel(image: np.ndarray, x: float, y: float) -> any:
     """
     Interpolate an image from floating point pixel coordinates.
 
@@ -311,3 +310,44 @@ def interpolate_pixel(image: cv.Mat, x: float, y: float) -> any:
         return image[i_y, i_x]
     else:
         return None
+
+
+def get_patch(image: np.ndarray, center: any) -> np.ndarray:
+    """
+    Get a 5x5 patch from the image, with the given center.
+
+    Parameters:
+        image: The target image.
+        center: The center coordinates for the patch.
+
+    Returns:
+        The values for the patch (or None).
+    """
+    assert is_image(image)
+
+    w, h = image_size(image)
+    x, y = center
+
+    if x - 2 < 0 or y - 2 < 0 or x + 2 > w - 1 or y + 2 > h - 1:
+        return None
+
+    values = []
+    for y_offs in range(-2, 3):
+        for x_offs in range(-2, 3):
+            x_pos = x + x_offs
+            y_pos = y + y_offs
+
+            values.append(interpolate_pixel(image, x_pos, y_pos))
+
+    return np.array(values)
+
+
+def sad_patch(patch0: np.ndarray, patch1: np.ndarray) -> float:
+    """
+    Calculate SAD between two patches.
+    """
+    assert isinstance(patch0, np.ndarray)
+    assert isinstance(patch1, np.ndarray)
+    assert len(patch0) == len(patch1)
+
+    return np.sum(np.abs(patch1 - patch0))
