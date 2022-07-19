@@ -142,7 +142,23 @@ def change_pose(pose: np.ndarray, delta: np.ndarray) -> np.ndarray:
     return mat.decomp_homogeneous_matrix(new_pose)
 
 
-def project_point(projection_mat: np.ndarray, xyz: np.ndarray) -> np.ndarray:
+def invert_3x4_matrix(m: np.ndarray) -> np.ndarray:
+    """
+    Invert an 3x4 matrix (e.g. pose or extrinsic).
+
+    Parameters:
+        m: The matrix.
+
+    Returns:
+        The inverted matrix.
+    """
+    assert isinstance(m, np.ndarray)
+    assert m.shape == (3, 4)
+
+    return mat.decomp_homogeneous_matrix(np.linalg.inv(mat.homogeneous_matrix(m)))
+
+
+def project_point(projection_mat: np.ndarray, xyz: np.ndarray) -> tuple:
     """
     Project a world coordinate to image.
 
@@ -151,7 +167,7 @@ def project_point(projection_mat: np.ndarray, xyz: np.ndarray) -> np.ndarray:
         xyz: The world point.
 
     Returns:
-        An image point.
+        A tuple (px, z depth).
     """
     assert isinstance(projection_mat, np.ndarray)
     assert projection_mat.shape == (3, 4)
@@ -160,9 +176,36 @@ def project_point(projection_mat: np.ndarray, xyz: np.ndarray) -> np.ndarray:
 
     xyz_h = np.append(xyz, 1.0)
     px = projection_mat @ xyz_h
-    px /= px[2]
+    z = px[2]
+    px /= z
 
-    return px[:2]
+    return px[:2], z
+
+
+def unproject_point(inv_intrinsic: np.ndarray, inv_extrinsic: np.ndarray,
+                    px: np.ndarray, z: float = 1.0) -> np.ndarray:
+    """
+    Unproject an image point to world coordinate, using depth value.
+
+    Parameters:
+        inv_intrinsic: Inverted intrinsic matrix.
+        inv_extrinsic: Inverted extrinsic matrix.
+        px: Image coordinate.
+        z: Depth value.
+
+    Returns:
+        World point.
+    """
+    assert isinstance(inv_intrinsic, np.ndarray)
+    assert inv_intrinsic.shape == (3, 3)
+    assert isinstance(inv_extrinsic, np.ndarray)
+    assert inv_extrinsic.shape == (3, 4)
+    assert len(px) == 2
+
+    px_h = np.append(px, 1.0)
+    xyz = inv_intrinsic @ px_h
+
+    return inv_extrinsic @ np.append(xyz * z, 1.0)
 
 
 def select_points_for_pose(image_points: np.ndarray, world_points: np.ndarray,

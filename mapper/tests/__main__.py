@@ -309,15 +309,33 @@ class TransformTestCase(unittest.TestCase):
         # Shall be equal result between project_point and cv version.
         xyz = np.array([-100.0, 0.0, -10.0])
 
-        px = tr.project_point(proj_mat, xyz)
+        px, _ = tr.project_point(proj_mat, xyz)
         px_cv, _ = cv.projectPoints(xyz, rvec, tvec, intrinsic, None)
         assertEqualArray(self, px_cv.flatten(), px)
 
         xyz = np.array([-100.0, 8.0, -17.0])
 
-        px = tr.project_point(proj_mat, xyz)
+        px, _ = tr.project_point(proj_mat, xyz)
         px_cv, _ = cv.projectPoints(xyz, rvec, tvec, intrinsic, None)
         assertEqualArray(self, px_cv.flatten(), px)
+
+    def test_unproject_point(self):
+        R = mat.ypr_matrix_yxz(-90, 0, 0)
+        t = np.array([0.0, 0.0, -10.0])
+
+        intrinsic = mat.ideal_intrinsic_matrix((30, 20), (1024, 768))
+
+        extrinsic = mat.extrinsic_matrix(R, t)
+        proj_mat = mat.projection_matrix(intrinsic, extrinsic)
+
+        inv_intrinsic = np.linalg.inv(intrinsic)
+        inv_extrinsic = tr.invert_3x4_matrix(extrinsic)
+
+        xyz = np.array([-100.0, 8.0, -17.0])
+        px, z = tr.project_point(proj_mat, xyz)
+
+        xyz2 = tr.unproject_point(inv_intrinsic, inv_extrinsic, px, z)
+        assertEqualArray(self, xyz, xyz2)
 
 
 def run_tests():
