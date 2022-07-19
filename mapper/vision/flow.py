@@ -29,7 +29,7 @@ def points_to_track(image: np.ndarray) -> np.ndarray:
     return cv.cornerSubPix(image, points, (3, 3), (-1, -1), criteria)
 
 
-def sparse_optical_flow(image0: np.ndarray, image1: np.ndarray, points0: np.ndarray) -> tuple:
+def sparse_optical_flow(image0: np.ndarray, image1: np.ndarray, points0: np.ndarray, thres: float = 1.0) -> tuple:
     """
     Calculate the sparse optical flow between the two images using 
     the provided points.
@@ -38,9 +38,10 @@ def sparse_optical_flow(image0: np.ndarray, image1: np.ndarray, points0: np.ndar
         image0: First image to optical flow.
         image1: Second image to optical flow.
         points0: Points taken from the first image.
+        thres: Pixel threshold for mutual matching.
 
     Returns:
-        A tuple (match0, match1) with mathing points.
+        A tuple (match0, match1) with matching points.
     """
     assert im.is_image(image0)
     assert im.num_channels(image0) == 1
@@ -60,13 +61,16 @@ def sparse_optical_flow(image0: np.ndarray, image1: np.ndarray, points0: np.ndar
     match0 = list()
     match1 = list()
     #intensities = list()
+
+    thres = thres ** 2
+
     for index, point in enumerate(points0):
         status_ok = st_0_1[index] == 1 and st_1_0[index] == 1
-        if status_ok and np.linalg.norm(point - p_1_0[index]) < 1.0:
+        if status_ok and np.sum(np.power(point - p_1_0[index], 2)) < thres:
             other_point = np.clip(p_0_1[index], (0.0, 0.0), (w - 1, h - 1))
 
-            i_0 = im.interpolate_pixel(image0, point[0], point[1])
-            i_1 = im.interpolate_pixel(image1, other_point[0], other_point[1])
+            #i_0 = im.interpolate_pixel(image0, point[0], point[1])
+            #i_1 = im.interpolate_pixel(image1, other_point[0], other_point[1])
 
             #intensities.append(abs(i_0 - i_1))
 

@@ -417,30 +417,43 @@ def tracking_and_mapping(data_dir: str, cheat_frames: int = 5) -> None:
 def run_mapper_from_kitti_data(data_dir: str) -> None:
     frame_id = 0
     keyframes = list()
+    previous_frame = None
 
     # Iterate through dataset.
     for image, proj_matrix, gt_pose in kd.KittiData(data_dir):
         intrinsic_mat, _ = mat.decomp_pose_matrix(proj_matrix)
-        parent_keyframe = keyframes[-1] if len(keyframes) > 0 else None
+        keyframe = keyframes[-1] if len(keyframes) > 0 else None
 
         # Create a new frame from the input.
-        frame = Frame(frame_id, image, intrinsic_mat, parent_keyframe)
+        frame = Frame(frame_id, image, intrinsic_mat)
 
-        # Track and map the frame against the parent keyframe.
-        frame.track_and_map()
+        # Track the frame against the previous frame.
+        if not previous_frame is None:
+            frame.track_against(previous_frame)
 
-        print_pose_comparision(f'#{frame_id}', frame.pose_mat, gt_pose)
+        # print_pose_comparision(f'#{frame_id}', frame.pose_mat, gt_pose)
+
+        # Use the frame for mapping.
+        if not keyframe is None:
+            keyframe.map_using(frame)
 
         # Check if the current frame should be promoted ...
-        if frame.should_be_promoted():
-            # Yes! Promote and save.
-            frame.promote_to_keyframe()
+        if frame.should_be_promoted(keyframe):
+            # Yes! Promote and store.
+            frame.promote_to_keyframe(keyframe)
             keyframes.append(frame)
-        else:
-            # Otherwise, the temporary use is over for the current frame.
-            del frame
 
+        # Delete the previous frame, if any.
+        if not previous_frame is None:
+            del previous_frame
+
+        # Store the current frame a until next iteration.
+        previous_frame = frame
+
+        # Increase id.
         frame_id += 1
+
+    print(f'Done. Num keyframes={len(keyframes)}')
 
 
 def main():
