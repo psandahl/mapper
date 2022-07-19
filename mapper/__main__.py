@@ -192,7 +192,7 @@ def plk_tracking(data_dir: str) -> None:
             panel.add_camera(pose, color=(255, 0, 0))
             panel.update()
 
-            key = cv.waitKey(0)
+            key = cv.waitKey(15)
             if key == 27:
                 break
         else:
@@ -383,7 +383,7 @@ def tracking_and_mapping(data_dir: str, cheat_frames: int = 5) -> None:
 
             panel.add_camera(gt_pose)
             panel.add_camera(pose, color=(255, 0, 0))
-            # panel.add_landmarks(new_landmarks)
+            panel.add_landmarks(new_landmarks)
             panel.update()
 
             # Update lists with pose match with previous frame and the pose.
@@ -414,11 +414,11 @@ def tracking_and_mapping(data_dir: str, cheat_frames: int = 5) -> None:
 
 
 def main():
-    plk_tracking_and_mapping('C:\\Users\\patri\\kitti\\KITTI_sequence_2')
+    # plk_tracking_and_mapping('C:\\Users\\patri\\kitti\\KITTI_sequence_2')
     # plk_tracking_and_mapping('C:\\Users\\patri\\kitti\\parking\\parking')
 
     # plk_tracking('C:\\Users\\patri\\kitti\\KITTI_sequence_1')
-    # plk_tracking('C:\\Users\\patri\\kitti\\KITTI_sequence_2')
+    plk_tracking('C:\\Users\\patri\\kitti\\KITTI_sequence_2')
     # plk_tracking('C:\\Users\\patri\\kitti\\KITTI_sequence_long_1')
     # plk_tracking('C:\\Users\\patri\\kitti\\parking\\parking')
 
