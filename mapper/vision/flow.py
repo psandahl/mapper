@@ -19,7 +19,7 @@ def points_to_track(image: np.ndarray) -> np.ndarray:
 
     w, h = im.image_size(image)
 
-    distance = 10
+    distance = 8
     max_corners = int(w / distance * h / distance)
 
     points = im.flatten_feature_array(
@@ -59,7 +59,7 @@ def sparse_optical_flow(image0: np.ndarray, image1: np.ndarray, points0: np.ndar
 
     match0 = list()
     match1 = list()
-    intensities = list()
+    #intensities = list()
     for index, point in enumerate(points0):
         status_ok = st_0_1[index] == 1 and st_1_0[index] == 1
         if status_ok and np.linalg.norm(point - p_1_0[index]) < 1.0:
@@ -68,16 +68,16 @@ def sparse_optical_flow(image0: np.ndarray, image1: np.ndarray, points0: np.ndar
             i_0 = im.interpolate_pixel(image0, point[0], point[1])
             i_1 = im.interpolate_pixel(image1, other_point[0], other_point[1])
 
-            intensities.append(abs(i_0 - i_1))
+            #intensities.append(abs(i_0 - i_1))
 
             match0.append(point)
             match1.append(other_point)
 
-    print('sparse_optical_flow. Matching intensities:')
-    print(f' min diff={np.min(intensities)}')
-    print(f' max diff={np.max(intensities)}')
-    print(f' mean diff={np.mean(intensities)}')
-    print(f' std dev diff={np.std(intensities)}')
+    #print('sparse_optical_flow. Matching intensities:')
+    #print(f' min diff={np.min(intensities)}')
+    #print(f' max diff={np.max(intensities)}')
+    #print(f' mean diff={np.mean(intensities)}')
+    #print(f' std dev diff={np.std(intensities)}')
 
     return np.array(match0), np.array(match1)
 
