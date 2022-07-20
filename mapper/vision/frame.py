@@ -35,25 +35,34 @@ class Frame:
         self.heat_map = None
 
     def track_against(self, other) -> None:
+        """
+        Track this frame against the other frame.
+        """
         assert not other is None
         assert not self.is_keyframe
 
         print(
             f'Track frame={self.frame_id} against frame={other.frame_id}')
 
+        # Get matching points from optical flow.
         train_match, query_match = flow.sparse_optical_flow(other.image,
                                                             self.image,
                                                             other.train_points)
         print(f' {len(train_match)} matching points from optical flow')
 
+        # Compute relative pose estimation from matching points.
         rel_pose, pose_train_match, _, _ = trk.visual_pose_prediction_plk(train_match,
                                                                           query_match,
                                                                           self.intrinsic_mat)
         print(f' {len(pose_train_match)} matching points in pose estimation')
 
+        # Apply relative pose to the current pose.
         self.pose_mat = trf.change_pose(other.pose_mat, rel_pose)
 
     def map_with(self, other) -> None:
+        """
+        Use the other frame to do mapping with this keyframe.
+        """
         assert self.is_keyframe
         assert not other is None
         assert not other.is_keyframe
@@ -121,6 +130,12 @@ class Frame:
         print(f' {inliers} inliers after mapping')
 
     def should_be_promoted(self, keyframe) -> bool:
+        """
+        Check this frame against the given keyframe, and decide
+        if this frame should be promoted to next keyframe
+        """
+        assert not self.is_keyframe
+
         if not keyframe is None:
             assert keyframe.is_keyframe
 
@@ -131,14 +146,28 @@ class Frame:
             ypr_diff = np.sum(np.abs(np.array(ypr_key) - np.array(ypr)))
             t_diff = np.linalg.norm(t_key - t)
 
-            return ypr_diff > 10 or t_diff > 8
+            angular_diff = 10.0
+            translate_diff = 8.0
 
+            return ypr_diff > angular_diff or t_diff > translate_diff
         else:
             return True
 
     def promote_to_keyframe(self, keyframe) -> None:
+        """
+        Promote this frame to keyframe, and inherit depth information
+        from the given keyframe.
+        """
+        assert not self.is_keyframe
+
         print(f'Frame={self.frame_id} is promoted to keyframe')
         self.is_keyframe = True
 
+        # Create default maps.
         self.depth_map = np.ones_like(self.image, dtype=np.float64)
         self.heat_map = np.zeros_like(self.image, dtype=np.int8)
+
+        if not keyframe is None:
+            assert keyframe.is_keyframe
+
+            # Copy things ...
