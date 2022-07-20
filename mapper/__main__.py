@@ -435,7 +435,7 @@ def run_mapper_from_kitti_data(data_dir: str) -> None:
 
         # Use the frame for mapping.
         if not keyframe is None:
-            keyframe.map_using(frame)
+            keyframe.map_with(frame)
 
         # Check if the current frame should be promoted ...
         if frame.should_be_promoted(keyframe):
@@ -447,7 +447,7 @@ def run_mapper_from_kitti_data(data_dir: str) -> None:
         if not previous_frame is None:
             del previous_frame
 
-        # Store the current frame a until next iteration.
+        # Store the current frame until next iteration.
         previous_frame = frame
 
         # Increase id.

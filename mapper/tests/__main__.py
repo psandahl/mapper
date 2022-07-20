@@ -330,6 +330,7 @@ class TransformTestCase(unittest.TestCase):
 
         inv_intrinsic = np.linalg.inv(intrinsic)
         inv_extrinsic = tr.invert_3x4_matrix(extrinsic)
+        # inv_extrinsic = mat.pose_matrix(R, t) # Equivalent as above.
 
         xyz = np.array([-100.0, 8.0, -17.0])
         px, z = tr.project_point(proj_mat, xyz)

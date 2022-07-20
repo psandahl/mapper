@@ -86,3 +86,7 @@ def circle_rect_collide(circle: tuple, rect: tuple) -> bool:
     closest_point = np.clip(xy, min, max)
 
     return np.linalg.norm(closest_point - xy) < radius
+
+
+def mix(v0: float, w0: float, v1: float, w1: float) -> float:
+    return v0 * w0 + v1 * w1
