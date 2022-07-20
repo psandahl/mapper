@@ -43,7 +43,7 @@ class LandmarkHashGrid():
             # Project the landmark into the current image if it's
             # infront of the camera.
             if trf.infront_of_camera(extrinsic_mat, landmark.get_xyz()):
-                px = trf.project_point(projection_mat, landmark.get_xyz())
+                px, _ = trf.project_point(projection_mat, landmark.get_xyz())
                 # Query for a matching grid index ...
                 grid_pos = self.px_to_grid_pos(px)
                 if not grid_pos is None:

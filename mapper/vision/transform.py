@@ -251,7 +251,7 @@ def select_points_for_pose(image_points: np.ndarray, world_points: np.ndarray,
 
         # Project all points to identify inliers.
         for index, xyz in enumerate(world_points):
-            px = project_point(projection_mat, xyz)
+            px, _ = project_point(projection_mat, xyz)
             error = np.linalg.norm(px - image_points[index])
             if error < error_threshold:
                 current.append(index)
@@ -304,7 +304,7 @@ def project_points_opt_6dof(image_points: np.ndarray, world_points: np.ndarray,
 
     err = list()
     for index, xyz in enumerate(world_points):
-        px = project_point(projection_mat, xyz)
+        px, _ = project_point(projection_mat, xyz)
         err.append(np.linalg.norm(px - image_points[index]))
 
     # print(
