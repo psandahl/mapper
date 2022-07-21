@@ -477,19 +477,21 @@ def run_mapper_from_kitti_data(data_dir: str) -> None:
         cv.imshow('image', image)
         cv.imshow('key image', keyframes[-1].image)
         cv.imshow('key depth', visualize_depth(keyframes[-1]))
-        key = cv.waitKey(0)
+        key = cv.waitKey(30)
         if key == 27:
             break
 
-    print(f'Done. Num keyframes={len(keyframes)}')
+    print(f'Done. Num keyframes={len(keyframes)} - ENTER to quit')
+
+    sys.stdin.read(1)
     cv.destroyAllWindows()
 
 
 def main():
     # run_mapper_from_kitti_data('C:\\Users\\patri\\kitti\\KITTI_sequence_1')
-    run_mapper_from_kitti_data('C:\\Users\\patri\\kitti\\KITTI_sequence_2')
-    # run_mapper_from_kitti_data(
-    #    'C:\\Users\\patri\\kitti\\KITTI_sequence_long_1')
+    # run_mapper_from_kitti_data('C:\\Users\\patri\\kitti\\KITTI_sequence_2')
+    run_mapper_from_kitti_data(
+        'C:\\Users\\patri\\kitti\\KITTI_sequence_long_1')
     # run_mapper_from_kitti_data('C:\\Users\\patri\\kitti\\parking\\parking')
 
     # plk_tracking_and_mapping('C:\\Users\\patri\\kitti\\KITTI_sequence_2')
