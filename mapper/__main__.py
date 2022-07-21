@@ -415,6 +415,7 @@ def tracking_and_mapping(data_dir: str, cheat_frames: int = 5) -> None:
 
 
 def run_mapper_from_kitti_data(data_dir: str) -> None:
+    cv.namedWindow('image')
     cv.namedWindow('key image')
     cv.namedWindow('key depth')
 
@@ -456,6 +457,7 @@ def run_mapper_from_kitti_data(data_dir: str) -> None:
         # Increase id.
         frame_id += 1
 
+        cv.imshow('image', image)
         cv.imshow('key image', keyframes[-1].image)
         cv.imshow('key depth', keyframes[-1].depth_map)
         key = cv.waitKey(30)

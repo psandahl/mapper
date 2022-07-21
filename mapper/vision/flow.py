@@ -4,7 +4,7 @@ import numpy as np
 import mapper.vision.image as im
 
 
-def points_to_track(image: np.ndarray) -> np.ndarray:
+def points_to_track(image: np.ndarray, distance: float = 5) -> np.ndarray:
     """
     Detect trackable points in the provided image.
 
@@ -19,7 +19,6 @@ def points_to_track(image: np.ndarray) -> np.ndarray:
 
     w, h = im.image_size(image)
 
-    distance = 8
     max_corners = int(w / distance * h / distance)
 
     points = im.flatten_feature_array(

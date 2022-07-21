@@ -26,7 +26,7 @@ class Frame:
         self.pose_mat = mat.pose_matrix(
             np.eye(3, 3, dtype=np.float64), np.zeros(3, dtype=np.float64))
 
-        self.train_points = flow.points_to_track(self.image)
+        self.train_points = flow.points_to_track(self.image, distance=8)
 
         self.is_keyframe = False
 
