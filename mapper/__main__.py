@@ -415,6 +415,9 @@ def tracking_and_mapping(data_dir: str, cheat_frames: int = 5) -> None:
 
 
 def run_mapper_from_kitti_data(data_dir: str) -> None:
+    cv.namedWindow('key image')
+    cv.namedWindow('key depth')
+
     frame_id = 0
     keyframes = list()
     previous_frame = None
@@ -453,12 +456,22 @@ def run_mapper_from_kitti_data(data_dir: str) -> None:
         # Increase id.
         frame_id += 1
 
+        cv.imshow('key image', keyframes[-1].image)
+        cv.imshow('key depth', keyframes[-1].depth_map)
+        key = cv.waitKey(30)
+        if key == 27:
+            break
+
     print(f'Done. Num keyframes={len(keyframes)}')
+    cv.destroyAllWindows()
 
 
 def main():
     # run_mapper_from_kitti_data('C:\\Users\\patri\\kitti\\KITTI_sequence_1')
-    run_mapper_from_kitti_data('C:\\Users\\patri\\kitti\\KITTI_sequence_2')
+    # run_mapper_from_kitti_data('C:\\Users\\patri\\kitti\\KITTI_sequence_2')
+    run_mapper_from_kitti_data(
+        'C:\\Users\\patri\\kitti\\KITTI_sequence_long_1')
+    # run_mapper_from_kitti_data('C:\\Users\\patri\\kitti\\parking\\parking')
 
     # plk_tracking_and_mapping('C:\\Users\\patri\\kitti\\KITTI_sequence_2')
     # plk_tracking_and_mapping('C:\\Users\\patri\\kitti\\parking\\parking')
