@@ -11,11 +11,13 @@ from mapper.util.panel import Panel
 import mapper.vision.epipolar as epi
 from mapper.vision.frame import Frame
 import mapper.vision.flow as flow
+import mapper.vision.image as im
 import mapper.vision.matrix as mat
 import mapper.vision.keypoint as kp
 import mapper.vision.mapping as map
 import mapper.vision.tracking as trk
 import mapper.vision.transform as trf
+import mapper.vision.utils as utils
 
 
 def print_pose_comparision(label: str, pose: np.ndarray, gt_pose: np.ndarray) -> None:
@@ -414,6 +416,21 @@ def tracking_and_mapping(data_dir: str, cheat_frames: int = 5) -> None:
     panel.destroy_window()
 
 
+def visualize_depth(keyframe) -> np.ndarray:
+    img = np.zeros_like(keyframe.image)
+    img = cv.cvtColor(img, cv.COLOR_GRAY2BGR)
+
+    w, h = im.image_size(keyframe.depth_map)
+    for v in range(0, h):
+        for u in range(0, w):
+            depth = 1.0 / keyframe.depth_map[v, u]
+            if depth > 1.0:
+                bgr = utils.depth_to_bgr(depth, 100)
+                img[v, u] = bgr
+
+    return img
+
+
 def run_mapper_from_kitti_data(data_dir: str) -> None:
     cv.namedWindow('image')
     cv.namedWindow('key image')
@@ -459,8 +476,8 @@ def run_mapper_from_kitti_data(data_dir: str) -> None:
 
         cv.imshow('image', image)
         cv.imshow('key image', keyframes[-1].image)
-        cv.imshow('key depth', keyframes[-1].depth_map)
-        key = cv.waitKey(30)
+        cv.imshow('key depth', visualize_depth(keyframes[-1]))
+        key = cv.waitKey(0)
         if key == 27:
             break
 
@@ -470,9 +487,9 @@ def run_mapper_from_kitti_data(data_dir: str) -> None:
 
 def main():
     # run_mapper_from_kitti_data('C:\\Users\\patri\\kitti\\KITTI_sequence_1')
-    # run_mapper_from_kitti_data('C:\\Users\\patri\\kitti\\KITTI_sequence_2')
-    run_mapper_from_kitti_data(
-        'C:\\Users\\patri\\kitti\\KITTI_sequence_long_1')
+    run_mapper_from_kitti_data('C:\\Users\\patri\\kitti\\KITTI_sequence_2')
+    # run_mapper_from_kitti_data(
+    #    'C:\\Users\\patri\\kitti\\KITTI_sequence_long_1')
     # run_mapper_from_kitti_data('C:\\Users\\patri\\kitti\\parking\\parking')
 
     # plk_tracking_and_mapping('C:\\Users\\patri\\kitti\\KITTI_sequence_2')
