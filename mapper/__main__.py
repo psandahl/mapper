@@ -431,7 +431,7 @@ def run_mapper_from_kitti_data(data_dir: str) -> None:
         if not previous_frame is None:
             frame.track_against(previous_frame)
 
-        print_pose_comparision(f'#{frame_id}', frame.pose_mat, gt_pose)
+        # print_pose_comparision(f'#{frame_id}', frame.pose_mat, gt_pose)
 
         # Use the frame for mapping.
         if not keyframe is None:
@@ -457,8 +457,8 @@ def run_mapper_from_kitti_data(data_dir: str) -> None:
 
 
 def main():
-    run_mapper_from_kitti_data('C:\\Users\\patri\\kitti\\KITTI_sequence_1')
-    # run_mapper_from_kitti_data('C:\\Users\\patri\\kitti\\KITTI_sequence_2')
+    # run_mapper_from_kitti_data('C:\\Users\\patri\\kitti\\KITTI_sequence_1')
+    run_mapper_from_kitti_data('C:\\Users\\patri\\kitti\\KITTI_sequence_2')
 
     # plk_tracking_and_mapping('C:\\Users\\patri\\kitti\\KITTI_sequence_2')
     # plk_tracking_and_mapping('C:\\Users\\patri\\kitti\\parking\\parking')

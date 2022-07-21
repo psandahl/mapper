@@ -34,6 +34,8 @@ class Frame:
         self.depth_map = None
         self.heat_map = None
 
+        print('')
+
     def track_against(self, other) -> None:
         """
         Track this frame against the other frame.
@@ -58,6 +60,8 @@ class Frame:
 
         # Apply relative pose to the current pose.
         self.pose_mat = trf.change_pose(other.pose_mat, rel_pose)
+
+        print('')
 
     def map_with(self, other) -> None:
         """
@@ -128,6 +132,7 @@ class Frame:
                     inliers += 1
 
         print(f' {inliers} inliers after mapping')
+        print('')
 
     def should_be_promoted(self, keyframe) -> bool:
         """
@@ -169,5 +174,52 @@ class Frame:
 
         if not keyframe is None:
             assert keyframe.is_keyframe
+            assert im.image_size(self.image) == im.image_size(keyframe.image)
 
-            # Copy things ...
+            print(f' Inherit depth information from frame={keyframe.frame_id}')
+
+            # Create inverse matrices for the keyframe (note: pose is equal
+            # to inversed extrinsic matrix).
+            intrinsic_key = np.linalg.inv(keyframe.intrinsic_mat)
+            extrinsic_key = keyframe.pose_mat
+
+            # Create projection matrix for self.
+            R, t = mat.decomp_pose_matrix(self.pose_mat)
+            extrinsic_self = mat.extrinsic_matrix(R, t)
+            projection_self = mat.projection_matrix(
+                self.intrinsic_mat, extrinsic_self)
+
+            w, h = im.image_size(keyframe.depth_map)
+
+            provided = 0
+            used = 0
+            for v in range(0, h):
+                for u in range(0, w):
+                    inv_depth = keyframe.depth_map[v, u]
+                    if inv_depth < 1.0:
+                        provided += 1
+
+                        # Extract depth and unproject.
+                        z_key = 1.0 / inv_depth
+                        xyz = trf.unproject_point(
+                            intrinsic_key, extrinsic_key, np.array((u, v)), z_key)
+
+                        # Make some outlier filtering (infront of camera, and inside image).
+                        if trf.infront_of_camera(extrinsic_self, xyz):
+                            px_self, z_self = trf.project_point(
+                                projection_self, xyz)
+                            u_self, v_self = np.round(px_self).astype(int)
+                            if u_self >= 0 and u_self < w and v_self >= 0 and v_self < h:
+                                used += 1
+
+                                # Populate the depth and heat maps of self.
+                                new_inv_depth = 1.0 / z_self
+                                self.depth_map[v_self, u_self] = new_inv_depth
+
+                                heat = keyframe.heat_map[v, u]
+                                assert heat > 0
+                                self.heat_map[v_self, u_self] = heat
+
+            print(f'  {provided} points provided, {used} points inherited')
+
+        print('')
