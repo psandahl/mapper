@@ -89,4 +89,37 @@ def circle_rect_collide(circle: tuple, rect: tuple) -> bool:
 
 
 def mix(v0: float, w0: float, v1: float, w1: float) -> float:
+    """
+    Simple mix function to mix linearly between two values.
+
+    Parameters:
+        v0: First value.
+        w0: Weight for the first value [0 - 1]
+        v1: Second value.
+        w1: Weight for the second value 1 - w0
+
+    Returns:
+        The mixed value.
+    """
     return v0 * w0 + v1 * w1
+
+
+def depth_to_bgr(depth: float, max_depth: float) -> tuple:
+    """
+    Simple function to map from a depth value to a b, g, r color tuple.
+    """
+    depth = max(0.0, min(depth, max_depth))
+
+    b, g, r = 0, 0, 0
+    if depth < max_depth / 2.0:
+        green = depth / (max_depth / 2.0)
+        r = int(round(mix(255.0, 1 - green, 0.0, green)))
+        g = int(round(mix(255.0, green, 0.0, 1 - green)))
+    else:
+        blue = (depth - max_depth / 2.0) / (max_depth / 2.0)
+        g = int(round(mix(255.0, 1 - blue, 0.0, blue)))
+        b = int(round(mix(255.0, blue, 0.0, 1 - blue)))
+
+    assert b + g + r == 255
+
+    return b, g, r
