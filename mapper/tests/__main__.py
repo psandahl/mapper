@@ -4,6 +4,7 @@ import numpy as np
 
 import unittest
 
+from mapper.vision.depthmap import Gaussian
 import mapper.vision.image as im
 import mapper.vision.keypoint as kp
 import mapper.vision.matrix as mat
@@ -337,6 +338,34 @@ class TransformTestCase(unittest.TestCase):
 
         xyz2 = tr.unproject_point(inv_intrinsic, inv_extrinsic, px, z)
         assertEqualArray(self, xyz, xyz2)
+
+
+class GaussianTestCase(unittest.TestCase):
+    def test_gaussian(self):
+        # Check behavior against numpy.
+        g = Gaussian()
+        x0 = []
+        self.assertAlmostEqual(np.sum(x0), g.sum)
+
+        g.add(1)
+        x1 = [1]
+        self.assertAlmostEqual(np.sum(x1), g.sum)
+        self.assertAlmostEqual(np.mean(x1), g.mean)
+        self.assertAlmostEqual(np.var(x1), g.variance)
+
+        g.add(2)
+        x2 = [1, 2]
+        self.assertAlmostEqual(np.sum(x2), g.sum)
+        self.assertAlmostEqual(np.mean(x2), g.mean)
+        self.assertAlmostEqual(np.var(x2), g.variance)
+
+        g.add(5)
+        g.add(4)
+        g.add(3)
+        x3 = [1, 2, 5, 4, 3]
+        self.assertAlmostEqual(np.sum(x3), g.sum)
+        self.assertAlmostEqual(np.mean(x3), g.mean)
+        self.assertAlmostEqual(np.var(x3), g.variance)
 
 
 def run_tests():
