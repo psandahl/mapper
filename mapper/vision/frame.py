@@ -1,6 +1,7 @@
 import cv2 as cv
 import numpy as np
 
+from mapper.vision.depthmap import DepthMap
 import mapper.vision.flow as flow
 import mapper.vision.image as im
 import mapper.vision.matrix as mat
@@ -31,6 +32,7 @@ class Frame:
         self.is_keyframe = False
 
         # Stuff only properly populated for keyframes.
+        self.depth_map2 = None
         self.depth_map = None
         self.heat_map = None
 
@@ -114,6 +116,8 @@ class Frame:
                     # Calculate the inverse depth for this sample.
                     inv_depth = 1.0 / z_key
 
+                    self.depth_map2.add((u, v), inv_depth)
+
                     # The current depth value.
                     curr_depth = self.depth_map[v, u]
 
@@ -191,6 +195,14 @@ class Frame:
 
             w, h = im.image_size(keyframe.depth_map)
 
+            self.depth_map2 = keyframe.depth_map2.export_to_projection(
+                intrinsic_key,
+                extrinsic_key,
+                self.intrinsic_mat,
+                extrinsic_self,
+                (w, h)
+            )
+
             provided = 0
             used = 0
             for v in range(0, h):
@@ -221,5 +233,7 @@ class Frame:
                                 self.heat_map[v_self, u_self] = heat
 
             print(f'  {provided} points provided, {used} points inherited')
+        else:
+            self.depth_map2 = DepthMap()
 
         print('')
