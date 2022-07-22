@@ -416,26 +416,9 @@ def tracking_and_mapping(data_dir: str, cheat_frames: int = 5) -> None:
     panel.destroy_window()
 
 
-def visualize_depth(keyframe) -> np.ndarray:
-    img = np.zeros_like(keyframe.image)
-    img = cv.cvtColor(img, cv.COLOR_GRAY2BGR)
-
-    w, h = im.image_size(img)
-
-    for px, gaussian in keyframe.depth_map.map.items():
-        depth = 1.0 / gaussian.mean
-        bgr = utils.depth_to_bgr(depth, 100)
-        u, v = np.round(px).astype(int)
-        if u >= 0 and u < w and v >= 0 and v < h:
-            img[v, u] = bgr
-
-    return img
-
-
 def run_mapper_from_kitti_data(data_dir: str) -> None:
-    cv.namedWindow('image')
-    cv.namedWindow('key image')
-    cv.namedWindow('key depth')
+    cv.namedWindow('frame')
+    cv.namedWindow('keyframe')
 
     frame_id = 0
     keyframes = list()
@@ -472,12 +455,17 @@ def run_mapper_from_kitti_data(data_dir: str) -> None:
         # Store the current frame until next iteration.
         previous_frame = frame
 
+        # Setup stuff for visualization.
+        cv.setWindowTitle('frame', f'Frame id={frame_id}')
+        cv.imshow('frame', image)
+        v_img = im.visualization_image(keyframes[-1].image)
+        keyframes[-1].depth_map.export_to_visualization_image(v_img)
+        cv.setWindowTitle('keyframe', f'Keyframe id={len(keyframes)}')
+        cv.imshow('keyframe', v_img)
+
         # Increase id.
         frame_id += 1
 
-        cv.imshow('image', image)
-        cv.imshow('key image', keyframes[-1].image)
-        cv.imshow('key depth', visualize_depth(keyframes[-1]))
         key = cv.waitKey(30)
         if key == 27:
             break
@@ -490,9 +478,9 @@ def run_mapper_from_kitti_data(data_dir: str) -> None:
 
 def main():
     # run_mapper_from_kitti_data('C:\\Users\\patri\\kitti\\KITTI_sequence_1')
-    run_mapper_from_kitti_data('C:\\Users\\patri\\kitti\\KITTI_sequence_2')
-    # run_mapper_from_kitti_data(
-    #    'C:\\Users\\patri\\kitti\\KITTI_sequence_long_1')
+    # run_mapper_from_kitti_data('C:\\Users\\patri\\kitti\\KITTI_sequence_2')
+    run_mapper_from_kitti_data(
+        'C:\\Users\\patri\\kitti\\KITTI_sequence_long_1')
     # run_mapper_from_kitti_data('C:\\Users\\patri\\kitti\\parking\\parking')
 
     # plk_tracking_and_mapping('C:\\Users\\patri\\kitti\\KITTI_sequence_2')

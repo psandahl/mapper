@@ -1,7 +1,11 @@
+
+import cv2 as cv
 import numpy as np
 
+import mapper.vision.image as im
 import mapper.vision.matrix as mat
 import mapper.vision.transform as trf
+import mapper.vision.utils as utils
 
 
 class Gaussian():
@@ -34,9 +38,15 @@ class Gaussian():
 
 class DepthMap():
     def __init__(self):
+        """
+        Create a new depth map.
+        """
         self.map = dict()
 
     def add(self, px: tuple, inv_depth: float) -> None:
+        """
+        Add a new inverse depth value to the map.
+        """
         assert isinstance(px, tuple)
         assert len(px) == 2
         assert isinstance(inv_depth, float)
@@ -54,6 +64,10 @@ class DepthMap():
                              tgt_intrinsic: np.ndarray,
                              tgt_extrinsic: np.ndarray,
                              tgt_image_size: tuple):
+        """
+        Export this depth map to a new depth map, but with
+        another projection.
+        """
         assert isinstance(src_inv_intrinsic, np.ndarray)
         assert src_inv_intrinsic.shape == (3, 3)
         assert isinstance(src_inv_extrinsic, np.ndarray)
@@ -87,3 +101,17 @@ class DepthMap():
                     tgt_depth_map.add((tgt_u, tgt_v), 1.0 / tgt_z)
 
         return tgt_depth_map
+
+    def export_to_visualization_image(self, image: np.ndarray,
+                                      max_depth: float = 100.0) -> None:
+        """
+        Export this depth map to a provided visualization image.
+        """
+        assert im.is_image(image)
+        assert im.num_channels(image) == 3
+
+        for px, gaussian in self.map.items():
+            depth = 1.0 / gaussian.mean
+            bgr = utils.depth_to_bgr(depth, max_depth)
+            u, v = np.round(px).astype(int)
+            cv.circle(image, (u, v), 1, bgr, -1, cv.LINE_AA)
