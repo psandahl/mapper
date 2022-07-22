@@ -7,7 +7,6 @@ import mapper.vision.image as im
 import mapper.vision.matrix as mat
 import mapper.vision.tracking as trk
 import mapper.vision.transform as trf
-import mapper.vision.utils as utils
 
 
 class Frame:
@@ -31,10 +30,8 @@ class Frame:
 
         self.is_keyframe = False
 
-        # Stuff only properly populated for keyframes.
-        self.depth_map2 = None
+        # Depth map is only populated for keyframes.
         self.depth_map = None
-        self.heat_map = None
 
         print('')
 
@@ -110,28 +107,14 @@ class Frame:
                 err_key = np.sum(np.square(px_key - train_match[index]))
                 err_oth = np.sum(np.square(px_oth - query_match[index]))
                 if err_key < 0.5 and err_oth < 0.5:
-                    # Get fitting u, v.
-                    u, v = np.round(px_key).astype(int)
+                    # Image coordinate for this sample.
+                    u, v = px_key
 
                     # Calculate the inverse depth for this sample.
                     inv_depth = 1.0 / z_key
 
-                    self.depth_map2.add((u, v), inv_depth)
-
-                    # The current depth value.
-                    curr_depth = self.depth_map[v, u]
-
-                    # Calculate a new, saturated, heat.
-                    new_heat = min(self.heat_map[v, u] + 1, 255)
-
-                    # Mix the new depth value. The depth for this sample
-                    # contributes 1/1 as most, and 1/255 as min.
-                    new_depth = utils.mix(curr_depth, (new_heat - 1) / new_heat,
-                                          inv_depth, 1 / new_heat)
-
-                    # Update images.
-                    self.depth_map[v, u] = new_depth
-                    self.heat_map[v, u] = new_heat
+                    # Add the sample to the depth map.
+                    self.depth_map.add((u, v), inv_depth)
 
                     inliers += 1
 
@@ -172,10 +155,6 @@ class Frame:
         print(f'Frame={self.frame_id} is promoted to keyframe')
         self.is_keyframe = True
 
-        # Create default maps.
-        self.depth_map = np.ones_like(self.image, dtype=np.float64)
-        self.heat_map = np.zeros_like(self.image, dtype=np.int8)
-
         if not keyframe is None:
             assert keyframe.is_keyframe
             assert im.image_size(self.image) == im.image_size(keyframe.image)
@@ -187,53 +166,23 @@ class Frame:
             intrinsic_key = np.linalg.inv(keyframe.intrinsic_mat)
             extrinsic_key = keyframe.pose_mat
 
-            # Create projection matrix for self.
+            # Create extrinsic matrix for self.
             R, t = mat.decomp_pose_matrix(self.pose_mat)
             extrinsic_self = mat.extrinsic_matrix(R, t)
-            projection_self = mat.projection_matrix(
-                self.intrinsic_mat, extrinsic_self)
 
-            w, h = im.image_size(keyframe.depth_map)
-
-            self.depth_map2 = keyframe.depth_map2.export_to_projection(
+            # Get the exported depth map.
+            self.depth_map = keyframe.depth_map.export_to_projection(
                 intrinsic_key,
                 extrinsic_key,
                 self.intrinsic_mat,
                 extrinsic_self,
-                (w, h)
+                im.image_size(keyframe.image)
             )
 
-            provided = 0
-            used = 0
-            for v in range(0, h):
-                for u in range(0, w):
-                    inv_depth = keyframe.depth_map[v, u]
-                    if inv_depth < 1.0:
-                        provided += 1
-
-                        # Extract depth and unproject.
-                        z_key = 1.0 / inv_depth
-                        xyz = trf.unproject_point(
-                            intrinsic_key, extrinsic_key, np.array((u, v)), z_key)
-
-                        # Make some outlier filtering (infront of camera, and inside image).
-                        if trf.infront_of_camera(extrinsic_self, xyz):
-                            px_self, z_self = trf.project_point(
-                                projection_self, xyz)
-                            u_self, v_self = np.round(px_self).astype(int)
-                            if u_self >= 0 and u_self < w and v_self >= 0 and v_self < h:
-                                used += 1
-
-                                # Populate the depth and heat maps of self.
-                                new_inv_depth = 1.0 / z_self
-                                self.depth_map[v_self, u_self] = new_inv_depth
-
-                                heat = keyframe.heat_map[v, u]
-                                assert heat > 0
-                                self.heat_map[v_self, u_self] = heat
-
-            print(f'  {provided} points provided, {used} points inherited')
+            print(
+                f'  {len(keyframe.depth_map.map)} points provided, {len(self.depth_map.map)} points inherited')
         else:
-            self.depth_map2 = DepthMap()
+            # No inherit. Create empty map.
+            self.depth_map = DepthMap()
 
         print('')

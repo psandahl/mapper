@@ -422,20 +422,12 @@ def visualize_depth(keyframe) -> np.ndarray:
 
     w, h = im.image_size(img)
 
-    for px, gaussian in keyframe.depth_map2.map.items():
+    for px, gaussian in keyframe.depth_map.map.items():
         depth = 1.0 / gaussian.mean
         bgr = utils.depth_to_bgr(depth, 100)
         u, v = np.round(px).astype(int)
         if u >= 0 and u < w and v >= 0 and v < h:
             img[v, u] = bgr
-
-    # w, h = im.image_size(keyframe.depth_map)
-    # for v in range(0, h):
-    #     for u in range(0, w):
-    #         depth = 1.0 / keyframe.depth_map[v, u]
-    #         if depth > 1.0:
-    #             bgr = utils.depth_to_bgr(depth, 100)
-    #             img[v, u] = bgr
 
     return img
 
@@ -498,9 +490,9 @@ def run_mapper_from_kitti_data(data_dir: str) -> None:
 
 def main():
     # run_mapper_from_kitti_data('C:\\Users\\patri\\kitti\\KITTI_sequence_1')
-    # run_mapper_from_kitti_data('C:\\Users\\patri\\kitti\\KITTI_sequence_2')
-    run_mapper_from_kitti_data(
-        'C:\\Users\\patri\\kitti\\KITTI_sequence_long_1')
+    run_mapper_from_kitti_data('C:\\Users\\patri\\kitti\\KITTI_sequence_2')
+    # run_mapper_from_kitti_data(
+    #    'C:\\Users\\patri\\kitti\\KITTI_sequence_long_1')
     # run_mapper_from_kitti_data('C:\\Users\\patri\\kitti\\parking\\parking')
 
     # plk_tracking_and_mapping('C:\\Users\\patri\\kitti\\KITTI_sequence_2')
