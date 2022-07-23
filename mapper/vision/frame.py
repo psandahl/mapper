@@ -107,8 +107,9 @@ class Frame:
                 err_key = np.sum(np.square(px_key - train_match[index]))
                 err_oth = np.sum(np.square(px_oth - query_match[index]))
                 if err_key < 0.5 and err_oth < 0.5:
-                    # Image coordinate for this sample.
-                    u, v = px_key
+                    # Image coordinate for this sample - use the keypoint instead
+                    # of the reprojected point.
+                    u, v = train_match[index]
 
                     # Calculate the inverse depth for this sample.
                     inv_depth = 1.0 / z_key
