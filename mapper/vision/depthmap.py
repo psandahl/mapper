@@ -35,6 +35,12 @@ class Gaussian():
 
         self.variance = self.sumsq / self.num - meansq
 
+    def ratio(self) -> float:
+        if self.num > 0:
+            return self.variance / self.mean
+        else:
+            return 0.0
+
 
 class DepthMap():
     def __init__(self):
@@ -57,6 +63,26 @@ class DepthMap():
             gaussian = Gaussian()
             gaussian.add(depth)
             self.map[px] = gaussian
+
+    def num_map_points(self):
+        """
+        Return the number of map points.
+        """
+        return len(self.map)
+
+    def purge(self, threshold: float) -> None:
+        """
+        Purge bad apples from a depth map.
+        """
+        before = len(self.map)
+
+        for key in list(self.map.keys()):
+            if self.map[key].ratio() > threshold:
+                del self.map[key]
+
+        after = len(self.map)
+
+        print(f' purge depth map. Of total={before}, inliers kept={after}')
 
     def export_to_projection(self,
                              src_inv_intrinsic: np.ndarray,
@@ -85,6 +111,9 @@ class DepthMap():
 
         tgt_projection = mat.projection_matrix(tgt_intrinsic, tgt_extrinsic)
         for src_px, gaussian in self.map.items():
+            # print(
+            #    f'depth item. count={gaussian.num}, mean={gaussian.mean}, var={gaussian.variance}')
+
             # Reconstruct the xyz position in the src projection.
 
             # TODO: Filter on variance.

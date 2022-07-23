@@ -35,6 +35,13 @@ class Frame:
 
         print('')
 
+    def finalize(self) -> None:
+        """
+        Finalize a frame. To be called when a frame is inherited
+        by a new frame.
+        """
+        self.depth_map.purge(0.1)
+
     def track_against(self, other) -> None:
         """
         Track this frame against the other frame.
@@ -158,6 +165,9 @@ class Frame:
             assert im.image_size(self.image) == im.image_size(keyframe.image)
 
             print(f' Inherit depth information from frame={keyframe.frame_id}')
+
+            # Finalize the keyframe to inherit from.
+            keyframe.finalize()
 
             # Create inverse matrices for the keyframe (note: pose is equal
             # to inversed extrinsic matrix).

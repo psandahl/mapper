@@ -458,10 +458,14 @@ def run_mapper_from_kitti_data(data_dir: str) -> None:
         # Setup stuff for visualization.
         cv.setWindowTitle('frame', f'Frame id={frame_id}')
         cv.imshow('frame', image)
-        v_img = im.visualization_image(keyframes[-1].image)
-        keyframes[-1].depth_map.export_to_visualization_image(v_img)
-        cv.setWindowTitle('keyframe', f'Keyframe id={len(keyframes)}')
-        cv.imshow('keyframe', v_img)
+
+        if len(keyframes) > 1:
+            k = keyframes[-2]
+            v_img = im.visualization_image(k.image)
+            k.depth_map.export_to_visualization_image(v_img)
+            cv.setWindowTitle(
+                'keyframe', f'Keyframe (finalized) id={len(keyframes)} map points={k.depth_map.num_map_points()}')
+            cv.imshow('keyframe', v_img)
 
         # Increase id.
         frame_id += 1
