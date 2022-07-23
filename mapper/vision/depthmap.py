@@ -43,19 +43,19 @@ class DepthMap():
         """
         self.map = dict()
 
-    def add(self, px: tuple, inv_depth: float) -> None:
+    def add(self, px: tuple, depth: float) -> None:
         """
-        Add a new inverse depth value to the map.
+        Add a new depth value to the map.
         """
         assert isinstance(px, tuple)
         assert len(px) == 2
-        assert isinstance(inv_depth, float)
+        assert isinstance(depth, float)
 
         if px in self.map:
-            self.map[px].add(inv_depth)
+            self.map[px].add(depth)
         else:
             gaussian = Gaussian()
-            gaussian.add(inv_depth)
+            gaussian.add(depth)
             self.map[px] = gaussian
 
     def export_to_projection(self,
@@ -88,17 +88,16 @@ class DepthMap():
             # Reconstruct the xyz position in the src projection.
 
             # TODO: Filter on variance.
-            src_depth = 1.0 / gaussian.mean
             xyz = trf.unproject_point(
-                src_inv_intrinsic, src_inv_extrinsic, src_px, src_depth)
+                src_inv_intrinsic, src_inv_extrinsic, src_px, gaussian.mean)
 
             # Make outlier filtering (infront of camera, and inside of image).
             if trf.infront_of_camera(tgt_extrinsic, xyz):
-                tgt_px, tgt_z = trf.project_point(tgt_projection, xyz)
+                tgt_px, depth = trf.project_point(tgt_projection, xyz)
                 tgt_u, tgt_v = tgt_px
 
                 if tgt_u >= 0.0 and tgt_u < w and tgt_v >= 0.0 and tgt_v < h:
-                    tgt_depth_map.add((tgt_u, tgt_v), 1.0 / tgt_z)
+                    tgt_depth_map.add((tgt_u, tgt_v), depth)
 
         return tgt_depth_map
 
@@ -111,7 +110,6 @@ class DepthMap():
         assert im.num_channels(image) == 3
 
         for px, gaussian in self.map.items():
-            depth = 1.0 / gaussian.mean
-            bgr = utils.depth_to_bgr(depth, max_depth)
+            bgr = utils.depth_to_bgr(gaussian.mean, max_depth)
             u, v = np.round(px).astype(int)
             cv.circle(image, (u, v), 1, bgr, -1, cv.LINE_AA)

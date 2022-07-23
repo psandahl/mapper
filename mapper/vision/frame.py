@@ -100,7 +100,7 @@ class Frame:
         for index, point in enumerate(points):
             # Inlier check 1, points must be in front of cameras.
             if trf.infront_of_camera(extrinsic_key, point) and trf.infront_of_camera(extrinsic_oth, point):
-                px_key, z_key = trf.project_point(projection_key, point)
+                px_key, depth = trf.project_point(projection_key, point)
                 px_oth, _ = trf.project_point(projection_oth, point)
 
                 # Inlier check 2. Reprojection error must be small.
@@ -111,11 +111,8 @@ class Frame:
                     # of the reprojected point.
                     u, v = train_match[index]
 
-                    # Calculate the inverse depth for this sample.
-                    inv_depth = 1.0 / z_key
-
                     # Add the sample to the depth map.
-                    self.depth_map.add((u, v), inv_depth)
+                    self.depth_map.add((u, v), depth)
 
                     inliers += 1
 
