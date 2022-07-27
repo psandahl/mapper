@@ -5,6 +5,7 @@ import numpy as np
 import unittest
 
 from mapper.vision.depthmap import Gaussian
+from mapper.vision.gaussnewton import GaussNewton
 import mapper.vision.image as im
 import mapper.vision.keypoint as kp
 import mapper.vision.matrix as mat
@@ -366,6 +367,50 @@ class GaussianTestCase(unittest.TestCase):
         self.assertAlmostEqual(np.sum(x3), g.sum)
         self.assertAlmostEqual(np.mean(x3), g.mean)
         self.assertAlmostEqual(np.var(x3), g.variance)
+
+
+def project_points_for_test(points: np.ndarray, params: np.ndarray) -> np.ndarray:
+    assert len(params) == 6
+
+    intrinsic = mat.intrinsic_matrix_35mm_film(26, (1024, 768))
+
+    yaw, pitch, roll, x, y, z = params
+    R = mat.ypr_matrix_yxz(yaw, pitch, roll)
+    t = np.array([x, y, z])
+
+    extrinsic = mat.extrinsic_matrix(R, t)
+    projection = mat.projection_matrix(intrinsic, extrinsic)
+
+    result = list()
+    for point in points:
+        uv, _ = tr.project_point(projection, point)
+        result.append(uv)
+
+    return np.array(result)
+
+
+class GaussNewtonTestCase(unittest.TestCase):
+    def test_camera_optimization(self):
+        xyz = [
+            np.array([0, 0, 50]),
+            np.array([0, -5, 51]),
+            np.array([0, 5, 52]),
+            np.array([6, -3, 40]),
+            np.array([-4, -8, 26.6]),
+            np.array([-14, 12, 66.6]),
+            np.array([23, 6, 82.1]),
+            np.array([-1.14, -11, 52.1]),
+        ]
+        xyz = np.array(xyz)
+        initial_guess = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+        ground_truth = np.array([5.23, 1.14, 0.51, -1.1, 0.1, -1.2])
+        uv = project_points_for_test(xyz, ground_truth)
+
+        solver = GaussNewton(project_points_for_test)
+        self.assertTrue(solver.solve(xyz, uv, initial_guess))
+        assertEqualArray(self, ground_truth, solver.coefficients)
+
+        print(solver.coefficients)
 
 
 def run_tests():
