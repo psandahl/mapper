@@ -410,7 +410,9 @@ class GaussNewtonTestCase(unittest.TestCase):
         self.assertTrue(solver.solve(xyz, uv, initial_guess))
         assertEqualArray(self, ground_truth, solver.coefficients)
 
-        print(solver.coefficients)
+        # print(solver.coefficients)
+        # print(solver.residuals)
+        # print(solver.Jacobian)
 
 
 def run_tests():
